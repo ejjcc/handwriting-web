@@ -220,6 +220,14 @@
       </div>
     </div>
 
+    <div class="preset-row" style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
+      <label style="margin: 0;">{{ $t('message.presetLabel') }}:</label>
+      <select v-model="selectedPreset" @change="applyPreset" class="styled-select" style="min-width: 220px;">
+        <option value="">{{ $t('message.presetNone') }}</option>
+        <option value="smallUnderlined">{{ $t('message.presetSmallUnderlined') }}</option>
+      </select>
+    </div>
+
     <div class="buttons">
       <button @click="loadPreset">{{ $t('message.loadSettings') }}</button>
       <button @click="savePreset">{{ $t('message.saveSettings') }}</button>
@@ -366,6 +374,36 @@ export default {
       queueFullTimer: null,         // setInterval 句柄
       enableFullPreview: false,
       localStorageItems: ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing', 'strikethrough_length_sigma', 'strikethrough_angle_sigma', 'strikethrough_width_sigma', 'strikethrough_probability', 'strikethrough_width', 'ink_depth_sigma', 'isUnderlined', 'enableEnglishSpacing'],
+      selectedPreset: '',
+      builtinPresets: {
+        smallUnderlined: {
+          fontName: '云烟体.ttf',
+          values: {
+            fontSize: 70,
+            lineSpacing: 100,
+            width: 2481,
+            height: 3507,
+            marginTop: 150,
+            marginBottom: 150,
+            marginLeft: 150,
+            marginRight: 150,
+            lineSpacingSigma: 1,
+            fontSizeSigma: 2,
+            wordSpacingSigma: 2,
+            perturbXSigma: 2,
+            perturbYSigma: 2,
+            perturbThetaSigma: 0.05,
+            wordSpacing: 2,
+            strikethrough_length_sigma: 2,
+            strikethrough_angle_sigma: 2,
+            strikethrough_width_sigma: 2,
+            strikethrough_probability: 0,
+            strikethrough_width: 8,
+            ink_depth_sigma: 30,
+            isUnderlined: true,
+          },
+        },
+      },
     };
   },
   created() {
@@ -1145,6 +1183,34 @@ export default {
         this.isGenerating = false;
         // 冷却定时器会自动处理冷却状态的重置
       }
+    },
+    applyPreset() {
+      const key = this.selectedPreset;
+      if (!key) return;
+      const preset = this.builtinPresets[key];
+      if (!preset) return;
+
+      Object.keys(preset.values).forEach(k => {
+        this[k] = preset.values[k];
+      });
+
+      // Match preset font against /api/fonts_info dropdown; clear any
+      // uploaded font so the backend uses the built-in via font_option.
+      if (preset.fontName && Array.isArray(this.options)) {
+        const match = this.options.find(o => o.text === preset.fontName);
+        if (match) {
+          this.selectedOption = match.value;
+          this.fontFile = null;
+          this.selectedFontFileName = '';
+        }
+      }
+
+      this.$swal.fire({
+        icon: 'success',
+        title: this.$t('message.presetApplied'),
+        timer: 1500,
+        showConfirmButton: false,
+      });
     },
     savePreset() {
       try {
