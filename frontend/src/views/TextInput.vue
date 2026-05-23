@@ -1,18 +1,19 @@
 <template>
-    <div id='text_file_select' class="d-flex justify-content-between">
-        <label for="textArea">{{ $t('message.text') }}:</label>
+    <div id='text_file_select' :class="{ 'tx-slim': slim }">
+        <label v-if="!slim" for="textArea">{{ $t('message.text') }}:</label>
         <textarea id="textArea" class="form-control" v-model="text"
             :placeholder="$t('message.enterText')"></textarea>
 
-        <label for="textFileInput">{{ $t('message.orUploadDocument') }}:</label>
-        <div class="file_select_container">
-            <button @click="triggerTextFileInput" class="mx-auto">{{ $t('message.chooseFile') }}</button>
-            <span class="border p-2 text-primary " v-if="selectedTextFileName">{{ selectedTextFileName }}</span>
-            <label>
-                <input type="file" ref="textFileInput" @change="uploadFile" id="textFileInput"
-                    accept=".doc,.docx,.pdf,.txt,.rtf" style="display: none;" />
-            </label>
-        </div>
+        <template v-if="!slim">
+            <label for="textFileInput">{{ $t('message.orUploadDocument') }}:</label>
+            <div class="file_select_container">
+                <button @click="triggerTextFileInput" class="mx-auto">{{ $t('message.chooseFile') }}</button>
+                <span class="border p-2 text-primary " v-if="selectedTextFileName">{{ selectedTextFileName }}</span>
+            </div>
+        </template>
+
+        <input type="file" ref="textFileInput" @change="uploadFile" id="textFileInput"
+            accept=".doc,.docx,.pdf,.txt,.rtf" style="display: none;" />
 
         <div v-if="isLoading" class="loader">{{ $t('message.loading') }}...</div>
     </div>
@@ -22,6 +23,10 @@
 <script>
 export default {
     name: 'TextInput',
+    props: {
+        slim: { type: Boolean, default: false },
+    },
+    emits: ['childEvent', 'file-uploaded'],
 
     data() {
         return {
@@ -69,9 +74,8 @@ export default {
             })
                 .then(response => {
                     this.text = response.data.text;
-                    //通知HomeView更新text 7.3, 但是如果直接输入文字，这里不会通知父组件7.4
                     this.$emit('childEvent', this.text);
-                    // 使用与 HomeView 一致的键名存储
+                    this.$emit('file-uploaded', this.selectedTextFileName);
                     localStorage.setItem('text', JSON.stringify(this.text));
                     this.isLoading = false;
                 })
@@ -91,12 +95,41 @@ export default {
 <style scoped>
 #text_file_select {
     position: relative;
-    /* 设置父元素为相对定位 */
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-width: 400px;
-    margin: auto;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#text_file_select #textArea {
+    flex: 1 1 auto;
+    min-height: 0;
+    resize: none;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#text_file_select.tx-slim {
+    gap: 0;
+}
+
+#text_file_select.tx-slim #textArea {
+    height: 100%;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    outline: none;
+}
+
+#text_file_select.tx-slim #textArea:focus {
+    box-shadow: none;
+    background: transparent;
 }
 
 

@@ -1,300 +1,327 @@
 <template>
-  <div style="height: 20px;"></div>
-  <div class="container">
-    <!-- 错误消息以及提示信息 -->
-    <div id="message">
-      <div v-if="message" class="alert alert-info" role="alert">
-        {{ message }}
-      </div>
-      <div v-if="uploadMessage" class="alert alert-info" role="alert">
-        {{ uploadMessage }}
-      </div>
-    </div> 
-
-    <div id="form">
-      <div class="container_file row">
-
-        <div class="col justify-content-between">
-          <TextInput @childEvent="(eventData) => { this.text = eventData }"></TextInput>
-        </div>
-
-        <div class="col">
-          <label>{{ $t('message.fontFile') }}:</label>
-          <div class="d-flex flex-row justify-content-between">
-            <div class="font-selection">
-              <button @click="triggerFontFileInput">{{ $t('message.chooseFile') }}</button>
-              <input type="file" ref="fontFileInput" @change="onFontChange" style="display: none;" />
-            </div>
-            <select v-model="selectedOption" class="styled-select" style="width: 60%;">
-              <option v-for="option in options" :value="option.value" :key="option.value">
-                {{ option.text }}
-              </option>
-            </select>
-          </div>
-
-          <div class="image-container">
-            <label>{{ $t('message.backgroundImageFile') }}:</label>
-            <div class="button-container">
-              <!-- :disabled="isDimensionSpecified" -->
-              <button @click="triggerImageFileInput" :class="{ 'button-disabled': isDimensionSpecified }"
-                :title="isDimensionSpecified ? $t('message.widthAndHeightSpecified') : ''">
-                {{ $t('message.chooseFile') }}
-                <div>
-                  <div v-if="selectedImageFileName" class="clear-button" @click.stop="clearImage">
-                    <div class="clear-button-line"></div>
-                    <div class="clear-button-line"></div>
-                  </div>
-                </div>
-              </button>
-              <span class="border p-2 fs-6 text-primary nowrap" v-if="selectedImageFileName">{{ selectedImageFileName
-                }}</span>
-              <input type="file" ref="imageFileInput" @change="onBackgroundImageChange" style="display: none;" />
-              <div v-if="isLoading" class="loader">{{ $t('message.loading') }}...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div c lass="label-container">
- 
-        <label>{{ $t('message.width') }}:
-          <input type="number" v-model="width" :disabled="isBackgroundImageSpecified"
-            :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
-        </label>
-      </div>
-
-
-      <div class="label-container">
-
-        <label>{{ $t('message.height') }}:
-          <input type="number" v-model="height" :disabled="isBackgroundImageSpecified"
-            :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
-        </label>
-        <button type="button" class="close" aria-label="Close" @click="clearDimensions">
-          <span aria-hidden="true">&times;</span>
+  <div class="hw-app">
+    <!-- TOP TOOLBAR -->
+    <div class="hw-toolbar">
+      <div class="hw-toolbar-section hw-toolbar-left">
+        <button class="hw-icon-btn hw-sidebar-toggle" @click="toggleSidebar"
+          :title="showSidebar ? '收起设置' : '展开设置'">
+          {{ showSidebar ? '◀' : '☰' }}
         </button>
+        <span class="hw-title">手写生成器</span>
       </div>
 
-      <input class="optionUnderline" type="checkbox" id="optionUnderline" name="option2" value="value2"
-        v-model="isUnderlined">
-      <label for="optionUnderline" style="margin-right: 0px;">增加下划线</label>
-
-      <input class="optionEnglishSpacing" type="checkbox" id="optionEnglishSpacing" name="optionEnglishSpacing" value="englishSpacing"
-        v-model="enableEnglishSpacing">
-      <label for="optionEnglishSpacing" style="margin-right: 0px;">{{ $t('message.enableEnglishSpacing') }}</label>
-
-      <div class="label-container">
-
-        <label>{{ $t('message.fontSize') }}:
-          <input type="number" v-model="fontSize" placeholder="recommend > 100" />
-        </label>
-      </div>
-
-      <div class="label-container">
-        <label>{{ $t('message.lineSpacing') }}:
-          <input type="number" v-model="lineSpacing" />
-        </label>
-      </div>
-
-      <div class="label-container">
-        <label>{{ $t('message.topMargin') }}:
-          <input type="number" v-model="marginTop" />
-        </label>
-      </div>
-
-      <div class="label-container">
-        <label>{{ $t('message.bottomMargin') }}:
-          <input type="number" v-model="marginBottom" />
-        </label>
-      </div>
-
-      <div class="label-container">
-        <label>{{ $t('message.leftMargin') }}:
-          <input type="number" v-model="marginLeft" />
-        </label>
-      </div>
-
-      <div class="label-container">
-        <label>{{ $t('message.rightMargin') }}:
-          <input type="number" v-model="marginRight" />
-        </label>
-      </div>
-      <!-- 这是一个按钮，用户点击这个按钮时，会展开或折叠下面的内容区域 -->
-      <button class="btn btn-primary" type="button" @click="toggleCollapse" style="width: 100px; font-size:0.9rem">
-        {{ $t('message.expand') }}
-      </button>
-
-      <!-- 这是一个内容区域，它的 id 与上面的按钮的 data-target 相对应 -->
-      <div v-if="isExpanded" id="collapseContent">
-        <div class="card card-body">
-          <div class="label-container">
-            <label>{{ $t('message.lineSpacingSigma') }}:
-              <input type="number" v-model="lineSpacingSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.fontSizeSigma') }}:
-              <input type="number" v-model="fontSizeSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.wordSpacingSigma') }}:
-              <input type="number" v-model="wordSpacingSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.perturbXSigma') }}:
-              <input type="number" v-model="perturbXSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.perturbYSigma') }}:
-              <input type="number" v-model="perturbYSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.perturbThetaSigma') }}:
-              <input type="number" v-model="perturbThetaSigma" />
-            </label>
-          </div>
-
-          <div class="label-container">
-            <label>{{ $t('message.wordSpacing') }}:
-              <input type="number" v-model="wordSpacing" />
-            </label>
-          </div>
-
-
-
-          <div class="label-container">
-            <label>{{ $t('message.strikethrough_length_sigma') }}:
-              <input type="text" v-model="strikethrough_length_sigma" />
-            </label>
-          </div>
-
-          <div class='label-container'>
-            <label>{{ $t('message.strikethrough_angle_sigma') }}:
-              <input type="number" v-model="strikethrough_angle_sigma" />
-            </label>
-          </div>
-
-          <div class='label-container'>
-            <label>{{ $t('message.strikethrough_width_sigma') }}:
-              <input type="number" v-model="strikethrough_width_sigma" />
-            </label>
-          </div>
-
-          <div class='label-container'>
-            <label>{{ $t('message.strikethrough_probability') }}:
-              <input type="number" v-model="strikethrough_probability" />
-            </label>
-          </div>
-
-          <div class='label-container'>
-            <label>{{ $t('message.strikethrough_width') }}:
-              <input type="number" v-model="strikethrough_width" />
-            </label>
-          </div>
-
-          <div class='label-container'>
-            <label>{{ $t('message.ink_depth_sigma') }}:
-              <input type="number" v-model="ink_depth_sigma" />
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 生成状态提示 -->
-    <div v-if="isGenerating || isInCooldownPeriod" class="generation-status">
-      <div v-if="isGenerating" class="status-generating">
-        🔄 正在生成中，请稍候...
-      </div>
-      <div v-else-if="isInCooldownPeriod" class="status-cooldown">
-        ⏳ 冷却中，还需等待 {{ remainingCooldown }} 秒
-      </div>
-    </div>
-
-    <div class="preset-row" style="display: flex; align-items: center; gap: 8px; margin: 8px 0;">
-      <label style="margin: 0;">{{ $t('message.presetLabel') }}:</label>
-      <select v-model="selectedPreset" @change="applyPreset" class="styled-select" style="min-width: 220px;">
-        <option value="">{{ $t('message.presetNone') }}</option>
-        <option value="smallUnderlined">{{ $t('message.presetSmallUnderlined') }}</option>
-      </select>
-    </div>
-
-    <div class="buttons">
-      <button @click="loadPreset">{{ $t('message.loadSettings') }}</button>
-      <button @click="savePreset">{{ $t('message.saveSettings') }}</button>
-      <button @click="resetSettings">{{ $t('message.resetSettings') }}</button>
-      <button @click="generateHandwriting(preview = true)" :disabled="shouldDisableButtons">
-        {{ buttonText || $t('message.preview') }}
-      </button>
-      <button v-if="isDevEnv" @click="toggleFullPreview" :disabled="shouldDisableButtons">
-        本地全量预览：{{ enableFullPreview ? '开' : '关' }}
-      </button>
-      <button @click="generateHandwriting(preview = false)" :disabled="shouldDisableButtons">
-        {{ buttonText || $t('message.generateFullHandwritingImage') }}
-      </button>
-      <button @click="generateHandwriting(preview = false, pdf_save = true)" :disabled="shouldDisableButtons">
-        {{ buttonText || $t('message.generatePdf') }}
-      </button>
-
-      <router-link to="/Feedback" class="btn btn-info">{{ $t('message.feedback') }}</router-link>
-    </div>
-
-    <!-- 页数提示 -->
-    <div v-if="isProductionSite() && text && text.length > 0" class="page-info-alert">
-      <div class="alert alert-warning" style="margin: 10px 0; font-size: 14px;">
-        <strong>📄 页数提示：</strong>
-        预计生成 <strong>{{ estimatePageCount() }}</strong> 页
-        <span v-if="estimatePageCount() > 10" style="color: #d63384;">
-          （handwrite.14790897.xyz限制一次最多10页，超出部分将被截断）
+      <div class="hw-toolbar-section hw-toolbar-center">
+        <button class="hw-btn hw-btn-sm" @click="triggerTextUpload"
+          :title="$t('message.orUploadDocument') + ' (.doc/.docx/.pdf/.txt/.rtf)'">
+          📄 上传文档
+        </button>
+        <span v-if="uploadedFileName" class="hw-filename hw-toolbar-filename" :title="uploadedFileName">
+          {{ uploadedFileName }}
         </span>
       </div>
-    </div>
-    <!-- 预览区 -->
-    <div class="preview">
-      <h2 v-if="!previewImages || previewImages.length === 0">{{ $t('message.preview') }}:</h2>
 
-      <div class="preview-container text-center">
-        <!-- 导航按钮 -->
-        <div v-if="previewImages && previewImages.length > 1" class="mb-3 d-flex justify-content-center align-items-center gap-3">
-          <button @click="prevPage" class="btn btn-outline-primary btn-sm" :disabled="currentPreviewIndex === 0">
-            &larr; 上一页
-          </button>
-          <span class="mx-3 font-weight-bold">
-            第 {{ currentPreviewIndex + 1 }} 页 / 共 {{ previewImages.length }} 页
+      <div class="hw-toolbar-section hw-toolbar-right">
+        <button class="hw-btn hw-btn-primary" @click="generateHandwriting(preview = true)"
+          :disabled="shouldDisableButtons">
+          {{ buttonText || $t('message.preview') }}
+        </button>
+        <button v-if="isDevEnv" class="hw-btn hw-btn-ghost" @click="toggleFullPreview"
+          :disabled="shouldDisableButtons">
+          全量预览：{{ enableFullPreview ? '开' : '关' }}
+        </button>
+        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false)"
+          :disabled="shouldDisableButtons">
+          {{ buttonText || $t('message.generateFullHandwritingImage') }}
+        </button>
+        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false, pdf_save = true)"
+          :disabled="shouldDisableButtons">
+          {{ buttonText || $t('message.generatePdf') }}
+        </button>
+        <router-link to="/Feedback" class="hw-btn hw-btn-ghost">{{ $t('message.feedback') }}</router-link>
+        <button class="hw-icon-btn hw-help-btn" @click="showHelp = true" title="语法帮助">?</button>
+      </div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div v-if="showHelp" class="hw-modal-overlay" @click.self="showHelp = false">
+      <div class="hw-modal">
+        <div class="hw-modal-header">
+          <span class="hw-modal-title">语法帮助</span>
+          <button class="hw-icon-btn" @click="showHelp = false" title="关闭">×</button>
+        </div>
+        <div class="hw-modal-body">
+          <p class="hw-help-intro">在文字编辑区里可以用以下标记控制排版：</p>
+
+          <div class="hw-help-item">
+            <div class="hw-help-syntax"><code>---</code></div>
+            <div class="hw-help-desc">
+              <strong>分页符</strong>：独占一行的三个或更多连字符，会从这里强制换到下一页。
+              <pre class="hw-help-example">第一页的内容
+---
+第二页的内容</pre>
+            </div>
+          </div>
+
+          <div class="hw-help-item">
+            <div class="hw-help-syntax"><code>&gt;&gt;&gt;</code></div>
+            <div class="hw-help-desc">
+              <strong>右对齐</strong>：以 <code>&gt;&gt;&gt;</code> 开头的行，该行内容靠右边距对齐（常用于落款、日期）。
+              <pre class="hw-help-example">正文左对齐
+&gt;&gt;&gt;祝大家新年快乐
+&gt;&gt;&gt;写于丙午年初一</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALERT MESSAGES -->
+    <div v-if="message || uploadMessage" class="hw-alerts">
+      <div v-if="message" class="alert alert-info hw-alert">{{ message }}</div>
+      <div v-if="uploadMessage" class="alert alert-info hw-alert">{{ uploadMessage }}</div>
+    </div>
+
+    <!-- 3-PANE BODY -->
+    <div class="hw-split">
+      <!-- LEFT: SETTINGS SIDEBAR (collapsible) -->
+      <aside v-if="showSidebar" class="hw-pane hw-sidebar">
+        <div class="hw-sidebar-header">
+          <span class="hw-sidebar-title">设置</span>
+          <button class="hw-icon-btn" @click="toggleSidebar" title="收起">◀</button>
+        </div>
+
+        <section class="hw-section">
+          <h3 class="hw-section-title">预设</h3>
+          <div class="hw-field">
+            <select v-model="selectedPreset" @change="applyPreset" class="hw-select hw-select-grow">
+              <option value="">{{ $t('message.presetNone') }}</option>
+              <option value="smallUnderlined">{{ $t('message.presetSmallUnderlined') }}</option>
+            </select>
+          </div>
+          <div class="hw-row hw-row-tight">
+            <button class="hw-btn hw-btn-sm" @click="loadPreset">{{ $t('message.loadSettings') }}</button>
+            <button class="hw-btn hw-btn-sm" @click="savePreset">{{ $t('message.saveSettings') }}</button>
+            <button class="hw-btn hw-btn-sm" @click="resetSettings">{{ $t('message.resetSettings') }}</button>
+          </div>
+        </section>
+
+        <section class="hw-section">
+          <h3 class="hw-section-title">字体 &amp; 背景</h3>
+
+          <div class="hw-field">
+            <label class="hw-field-label">{{ $t('message.fontFile') }}</label>
+            <div class="hw-field-control hw-row">
+              <button class="hw-btn hw-btn-sm" @click="triggerFontFileInput">{{ $t('message.chooseFile') }}</button>
+              <input type="file" ref="fontFileInput" @change="onFontChange" style="display: none;" />
+              <select v-model="selectedOption" class="hw-select hw-select-grow">
+                <option v-for="option in options" :value="option.value" :key="option.value">
+                  {{ option.text }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="hw-field">
+            <label class="hw-field-label">{{ $t('message.backgroundImageFile') }}</label>
+            <div class="hw-field-control hw-row">
+              <button class="hw-btn hw-btn-sm" @click="triggerImageFileInput"
+                :class="{ 'button-disabled': isDimensionSpecified }"
+                :title="isDimensionSpecified ? $t('message.widthAndHeightSpecified') : ''">
+                {{ $t('message.chooseFile') }}
+                <span v-if="selectedImageFileName" class="clear-button" @click.stop="clearImage">
+                  <span class="clear-button-line"></span>
+                  <span class="clear-button-line"></span>
+                </span>
+              </button>
+              <span class="hw-filename" v-if="selectedImageFileName">{{ selectedImageFileName }}</span>
+              <input type="file" ref="imageFileInput" @change="onBackgroundImageChange" style="display: none;" />
+              <span v-if="isLoading" class="loader">{{ $t('message.loading') }}...</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="hw-section">
+          <h3 class="hw-section-title">页面与样式</h3>
+
+          <div class="hw-field hw-field-inline">
+            <label class="hw-field-label">{{ $t('message.width') }}</label>
+            <input class="hw-input" type="number" v-model="width" :disabled="isBackgroundImageSpecified"
+              :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
+          </div>
+
+          <div class="hw-field hw-field-inline">
+            <label class="hw-field-label">{{ $t('message.height') }}</label>
+            <input class="hw-input" type="number" v-model="height" :disabled="isBackgroundImageSpecified"
+              :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
+            <button type="button" class="hw-icon-btn" title="清空宽高" @click="clearDimensions">×</button>
+          </div>
+
+          <div class="hw-field hw-field-checkbox">
+            <input type="checkbox" id="optionUnderline" v-model="isUnderlined" />
+            <label for="optionUnderline">增加下划线</label>
+          </div>
+
+          <div class="hw-field hw-field-checkbox">
+            <input type="checkbox" id="optionEnglishSpacing" v-model="enableEnglishSpacing" />
+            <label for="optionEnglishSpacing">{{ $t('message.enableEnglishSpacing') }}</label>
+          </div>
+        </section>
+
+        <section class="hw-section">
+          <h3 class="hw-section-title">字号与间距</h3>
+
+          <div class="hw-field hw-field-inline">
+            <label class="hw-field-label">{{ $t('message.fontSize') }}</label>
+            <input class="hw-input" type="number" v-model="fontSize" placeholder="recommend > 100" />
+          </div>
+
+          <div class="hw-field hw-field-inline">
+            <label class="hw-field-label">{{ $t('message.lineSpacing') }}</label>
+            <input class="hw-input" type="number" v-model="lineSpacing" />
+          </div>
+
+          <div class="hw-grid-2">
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label" :title="$t('message.topMargin')">上</label>
+              <input class="hw-input" type="number" v-model="marginTop" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label" :title="$t('message.bottomMargin')">下</label>
+              <input class="hw-input" type="number" v-model="marginBottom" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label" :title="$t('message.leftMargin')">左</label>
+              <input class="hw-input" type="number" v-model="marginLeft" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label" :title="$t('message.rightMargin')">右</label>
+              <input class="hw-input" type="number" v-model="marginRight" />
+            </div>
+          </div>
+        </section>
+
+        <section class="hw-section">
+          <h3 class="hw-section-title hw-section-toggle" @click="toggleCollapse">
+            <span>高级参数</span>
+            <span class="hw-caret">{{ isExpanded ? '▼' : '▶' }}</span>
+          </h3>
+
+          <div v-if="isExpanded" class="hw-section-body">
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.lineSpacingSigma') }}</label>
+              <input class="hw-input" type="number" v-model="lineSpacingSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.fontSizeSigma') }}</label>
+              <input class="hw-input" type="number" v-model="fontSizeSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.wordSpacingSigma') }}</label>
+              <input class="hw-input" type="number" v-model="wordSpacingSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.perturbXSigma') }}</label>
+              <input class="hw-input" type="number" v-model="perturbXSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.perturbYSigma') }}</label>
+              <input class="hw-input" type="number" v-model="perturbYSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.perturbThetaSigma') }}</label>
+              <input class="hw-input" type="number" v-model="perturbThetaSigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.wordSpacing') }}</label>
+              <input class="hw-input" type="number" v-model="wordSpacing" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.strikethrough_length_sigma') }}</label>
+              <input class="hw-input" type="text" v-model="strikethrough_length_sigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.strikethrough_angle_sigma') }}</label>
+              <input class="hw-input" type="number" v-model="strikethrough_angle_sigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.strikethrough_width_sigma') }}</label>
+              <input class="hw-input" type="number" v-model="strikethrough_width_sigma" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.strikethrough_probability') }}</label>
+              <input class="hw-input" type="number" v-model="strikethrough_probability" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.strikethrough_width') }}</label>
+              <input class="hw-input" type="number" v-model="strikethrough_width" />
+            </div>
+            <div class="hw-field hw-field-inline">
+              <label class="hw-field-label">{{ $t('message.ink_depth_sigma') }}</label>
+              <input class="hw-input" type="number" v-model="ink_depth_sigma" />
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- MIDDLE: EDITOR (text input) -->
+      <main class="hw-pane hw-editor">
+        <TextInput slim ref="textInputComp"
+          @childEvent="(eventData) => { this.text = eventData }"
+          @file-uploaded="(name) => { this.uploadedFileName = name }"></TextInput>
+      </main>
+
+      <!-- RIGHT: PREVIEW -->
+      <aside class="hw-pane hw-pane-preview">
+        <div class="hw-preview-header">
+          <h2 class="hw-preview-title">{{ $t('message.preview') }}</h2>
+          <span v-if="previewImages && previewImages.length > 1" class="hw-preview-page-info">
+            共 {{ previewImages.length }} 页
           </span>
-          <button @click="nextPage" class="btn btn-outline-primary btn-sm" :disabled="currentPreviewIndex === previewImages.length - 1">
-            下一页 &rarr;
-          </button>
         </div>
 
-        <!-- 图片显示 -->
-        <div v-if="previewImages && previewImages.length > 0">
-          <img :src="previewImages[currentPreviewIndex]" 
-               :alt="$t('message.previewImage') + ' ' + (currentPreviewIndex + 1)" 
-               style="width: 600px; max-width: 100%; border: 1px solid #ddd; padding: 5px; border-radius: 4px;" />
+        <div class="hw-preview-body">
+          <div v-if="isProductionSite() && text && text.length > 0" class="hw-page-hint">
+            预计生成 <strong>{{ estimatePageCount() }}</strong> 页
+            <span v-if="estimatePageCount() > 10" class="hw-page-hint-warn">
+              （线上限制最多 10 页，超出部分将被截断）
+            </span>
+          </div>
+
+          <div class="hw-preview-images">
+            <template v-if="previewImages && previewImages.length > 0">
+              <div v-for="(img, idx) in previewImages" :key="idx" class="hw-preview-image-item">
+                <img :src="img" :alt="$t('message.previewImage') + ' ' + (idx + 1)" />
+                <div v-if="previewImages.length > 1" class="hw-preview-page-label">
+                  第 {{ idx + 1 }} 页 / 共 {{ previewImages.length }} 页
+                </div>
+              </div>
+            </template>
+            <div v-else class="hw-preview-image-item">
+              <img :src="previewImage" :alt="$t('message.previewImage')" />
+            </div>
+          </div>
         </div>
-        <img v-else :src="previewImage" :alt="$t('message.previewImage')" style="width: 600px; max-width: 100%;" />
+      </aside>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div class="hw-statusbar">
+      <div class="hw-statusbar-left">
+        <span class="hw-status-item" v-if="text">字数: {{ text.length }}</span>
+        <span class="hw-status-item" v-if="text && text.length > 0">预计页数: {{ estimatePageCount() }}</span>
+        <span class="hw-status-item hw-status-generating" v-if="isGenerating">🔄 生成中…</span>
+        <span class="hw-status-item hw-status-cooldown" v-else-if="isInCooldownPeriod">
+          ⏳ 冷却中 {{ remainingCooldown }}s
+        </span>
+        <span class="hw-status-item hw-status-idle" v-else>就绪</span>
+      </div>
+      <div class="hw-statusbar-right">
+        <span class="hw-status-item">{{ $t('message.projectAddress') }}:
+          <a href="https://github.com/14790897/handwriting-web" class="hw-link">GitHub</a>
+        </span>
+        <span class="hw-status-item hw-status-tip">{{ $t('message.freeprompt') }}</span>
       </div>
     </div>
-    <footer class=" footer mt-auto py-3 bg-white">
-      <div class="container text-center">
-
-        <!-- <a href="mailto:14790897abc@gmail.com" class="text-info">14790897abc@gmail.com</a> -->
-        <span class="text-black">{{ $t('message.projectAddress') }}:</span>
-        <a href="https://github.com/14790897/handwriting-web" class="text-info">GitHub</a>
-      </div>
-      <!-- 本网站是免费网站如果你是付费访问的请退款 -->
-      <div class ='freeprompt'>{{ $t('message.freeprompt') }}</div>
-    </footer>
   </div>
 </template>
 
@@ -373,6 +400,9 @@ export default {
       queueFullTotal: 0,            // 初始等待秒数，用于计算进度条
       queueFullTimer: null,         // setInterval 句柄
       enableFullPreview: false,
+      showSidebar: true,
+      showHelp: false,
+      uploadedFileName: '',
       localStorageItems: ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing', 'strikethrough_length_sigma', 'strikethrough_angle_sigma', 'strikethrough_width_sigma', 'strikethrough_probability', 'strikethrough_width', 'ink_depth_sigma', 'isUnderlined', 'enableEnglishSpacing'],
       selectedPreset: '',
       builtinPresets: {
@@ -388,10 +418,10 @@ export default {
             marginLeft: 150,
             marginRight: 150,
             lineSpacingSigma: 1,
-            fontSizeSigma: 2,
+            fontSizeSigma: 1,
             wordSpacingSigma: 2,
-            perturbXSigma: 2,
-            perturbYSigma: 2,
+            perturbXSigma: 1,
+            perturbYSigma: 1,
             perturbThetaSigma: 0.05,
             wordSpacing: 2,
             strikethrough_length_sigma: 2,
@@ -401,6 +431,7 @@ export default {
             strikethrough_width: 8,
             ink_depth_sigma: 30,
             isUnderlined: true,
+            enableEnglishSpacing: false,
           },
         },
       },
@@ -752,6 +783,15 @@ export default {
     toggleFullPreview() {
       this.enableFullPreview = !this.enableFullPreview;
     },
+    toggleSidebar() {
+      this.showSidebar = !this.showSidebar;
+    },
+    triggerTextUpload() {
+      const tx = this.$refs.textInputComp;
+      if (tx && typeof tx.triggerTextFileInput === 'function') {
+        tx.triggerTextFileInput();
+      }
+    },
     startQueueFullCountdown(seconds) {
       // 清掉旧计时器
       if (this.queueFullTimer) {
@@ -868,6 +908,21 @@ export default {
       }
       throw new Error('任务处理超时，请重试');
     },
+    filenameFromResponse(response, fallbackExt) {
+      const cd = response.headers && (response.headers['content-disposition']
+        || response.headers['Content-Disposition']);
+      if (cd) {
+        const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd);
+        if (m && m[1]) {
+          try { return decodeURIComponent(m[1]); } catch (_) { return m[1]; }
+        }
+      }
+      const ts = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}-` +
+        `${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}`;
+      return `handwriting-${stamp}.${fallbackExt}`;
+    },
     handleGenerationResultResponse(response) {
       const contentType = response.headers['content-type'] || '';
       if (contentType.includes('application/json')) {
@@ -898,7 +953,7 @@ export default {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'images.zip'); // 或任何其他文件名
+        link.setAttribute('download', this.filenameFromResponse(response, 'zip'));
         document.body.appendChild(link);
         link.click();
         // 下载完成后，将链接删除，7.5
@@ -913,7 +968,7 @@ export default {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', 'images.pdf'); // 或任何其他文件名
+        link.setAttribute('download', this.filenameFromResponse(response, 'pdf'));
         document.body.appendChild(link);
         link.click();
         // 下载完成后，将链接删除
@@ -1946,5 +2001,660 @@ input[type="file"]:hover {
 }
 
 /* 队列已满提示 - 已迁移到 Swal Toast */
+
+/* ============================================
+   Editor-style split layout (hw-* namespace)
+   ============================================ */
+
+.hw-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: #fff;
+  color: #1f2328;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+}
+
+/* ----- Top toolbar ----- */
+.hw-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: #f6f8fa;
+  border-bottom: 1px solid #d0d7de;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.hw-toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-toolbar-left { flex: 0 0 auto; }
+.hw-toolbar-center { flex: 0 1 auto; }
+.hw-toolbar-right { flex: 1 1 auto; justify-content: flex-end; flex-wrap: wrap; }
+
+.hw-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2328;
+  letter-spacing: 0.3px;
+}
+
+.hw-toolbar-label {
+  font-size: 13px;
+  color: #57606a;
+  margin: 0;
+}
+
+/* ----- Buttons ----- */
+.hw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  background: #fff;
+  color: #24292f;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.hw-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #afb8c1;
+}
+
+.hw-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hw-btn-sm {
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.hw-btn-primary {
+  background: #0969da;
+  color: #fff;
+  border-color: #0969da;
+}
+.hw-btn-primary:hover:not(:disabled) {
+  background: #0860c7;
+  border-color: #0860c7;
+}
+
+.hw-btn-success {
+  background: #1f883d;
+  color: #fff;
+  border-color: #1f883d;
+}
+.hw-btn-success:hover:not(:disabled) {
+  background: #1a7234;
+  border-color: #1a7234;
+}
+
+.hw-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: #57606a;
+}
+.hw-btn-ghost:hover:not(:disabled) {
+  background: #eaeef2;
+  color: #1f2328;
+}
+
+.hw-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+  background: transparent;
+  color: #57606a;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.hw-icon-btn:hover {
+  background: #eaeef2;
+  color: #cf222e;
+}
+
+/* ----- Form controls ----- */
+.hw-input,
+.hw-select {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  background: #fff;
+  color: #1f2328;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.hw-input:focus,
+.hw-select:focus {
+  border-color: #0969da;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.15);
+}
+
+.hw-input:disabled {
+  background: #f6f8fa;
+  color: #8c959f;
+  cursor: not-allowed;
+}
+
+.hw-input { width: 120px; }
+.hw-select { min-width: 160px; }
+.hw-select-grow { flex: 1 1 auto; min-width: 0; }
+
+/* ----- Alerts ----- */
+.hw-alerts {
+  padding: 8px 16px 0;
+  flex-shrink: 0;
+}
+.hw-alert {
+  margin: 0 0 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+/* ----- Split body ----- */
+.hw-split {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hw-pane {
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Sidebar: collapsible settings panel */
+.hw-sidebar {
+  flex: 0 0 300px;
+  padding: 0;
+  border-right: 1px solid #d0d7de;
+  background: #fafbfc;
+  display: flex;
+  flex-direction: column;
+}
+
+.hw-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eaeef2;
+  background: #f6f8fa;
+  flex-shrink: 0;
+}
+
+.hw-sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2328;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.hw-sidebar .hw-section {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eaeef2;
+}
+.hw-sidebar .hw-section:last-child { border-bottom: none; }
+
+.hw-sidebar-toggle {
+  font-size: 14px;
+}
+
+/* Editor: pure text input pane */
+.hw-editor {
+  flex: 1 1 50%;
+  min-width: 0;
+  padding: 16px 20px;
+  background: #fff;
+  border-right: 1px solid #d0d7de;
+  display: flex;
+  flex-direction: column;
+}
+
+.hw-editor > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.hw-pane-preview {
+  flex: 1 1 50%;
+  min-width: 0;
+  padding: 20px 24px;
+  background: #f6f8fa;
+}
+
+/* ----- Form sections ----- */
+.hw-section {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eaeef2;
+}
+.hw-section:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.hw-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #57606a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hw-section-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+.hw-section-toggle:hover { color: #1f2328; }
+
+.hw-caret {
+  font-size: 11px;
+  color: #8c959f;
+}
+
+.hw-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ----- Field (label + control) ----- */
+.hw-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.hw-field:last-child { margin-bottom: 0; }
+
+.hw-field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.hw-field-inline .hw-field-label {
+  flex: 0 0 96px;
+  margin: 0;
+  text-align: right;
+}
+
+.hw-field-inline .hw-input {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: 220px;
+}
+
+.hw-field-label {
+  font-size: 13px;
+  color: #1f2328;
+  font-weight: 500;
+}
+
+.hw-field-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hw-field-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.hw-field-checkbox label {
+  font-size: 13px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.hw-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hw-row-tight {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.hw-row-tight .hw-btn {
+  flex: 1 1 auto;
+}
+
+.hw-grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px 10px;
+  margin-top: 4px;
+}
+
+.hw-grid-2 .hw-field-inline {
+  min-width: 0;
+  gap: 6px;
+}
+
+.hw-grid-2 .hw-field-inline .hw-field-label {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.hw-grid-2 .hw-field-inline .hw-input {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.hw-filename {
+  font-size: 12px;
+  color: #0969da;
+  padding: 2px 6px;
+  background: #ddf4ff;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.hw-toolbar-filename {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+/* ----- Preview pane ----- */
+.hw-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d0d7de;
+}
+
+.hw-preview-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2328;
+  margin: 0;
+}
+
+.hw-preview-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hw-preview-page-info {
+  font-size: 13px;
+  color: #57606a;
+  min-width: 60px;
+  text-align: center;
+}
+
+.hw-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hw-page-hint {
+  padding: 8px 12px;
+  background: #fff8c5;
+  border: 1px solid #d4a72c;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #633c01;
+}
+.hw-page-hint-warn { color: #cf222e; font-weight: 500; }
+
+.hw-preview-image {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+.hw-preview-image img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* Scrollable multi-page preview */
+.hw-preview-images {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.hw-preview-image-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hw-preview-image-item img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.hw-preview-page-label {
+  font-size: 12px;
+  color: #57606a;
+  padding: 2px 8px;
+  background: #eaeef2;
+  border-radius: 10px;
+}
+
+/* ----- Status bar ----- */
+.hw-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px;
+  background: #f6f8fa;
+  border-top: 1px solid #d0d7de;
+  font-size: 12px;
+  color: #57606a;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.hw-statusbar-left,
+.hw-statusbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hw-status-item { white-space: nowrap; }
+
+.hw-status-generating { color: #0969da; font-weight: 500; }
+.hw-status-cooldown { color: #bf8700; font-weight: 500; }
+.hw-status-idle { color: #1a7f37; }
+.hw-status-tip { color: #8c959f; font-style: italic; }
+
+.hw-link { color: #0969da; text-decoration: none; }
+.hw-link:hover { text-decoration: underline; }
+
+/* ----- Help button + modal ----- */
+.hw-help-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d0d7de;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #57606a;
+}
+.hw-help-btn:hover {
+  background: #eaeef2;
+  color: #0969da;
+  border-color: #0969da;
+}
+
+.hw-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.hw-modal {
+  width: 520px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 80px);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hw-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eaeef2;
+  background: #f6f8fa;
+}
+
+.hw-modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.hw-modal-body {
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.hw-help-intro {
+  font-size: 13px;
+  color: #57606a;
+  margin: 0 0 16px;
+}
+
+.hw-help-item {
+  display: flex;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid #eaeef2;
+}
+
+.hw-help-syntax {
+  flex: 0 0 64px;
+}
+.hw-help-syntax code {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #eff1f3;
+  border-radius: 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  color: #cf222e;
+  font-weight: 600;
+}
+
+.hw-help-desc {
+  flex: 1 1 auto;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1f2328;
+}
+.hw-help-desc code {
+  padding: 1px 5px;
+  background: #eff1f3;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: #cf222e;
+}
+
+.hw-help-example {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: #f6f8fa;
+  border: 1px solid #eaeef2;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #1f2328;
+  white-space: pre-wrap;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 900px) {
+  .hw-split { flex-direction: column; }
+  .hw-pane-form {
+    flex: 0 0 auto;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #d0d7de;
+    max-height: 50vh;
+  }
+  .hw-pane-preview { flex: 1 1 auto; }
+  .hw-toolbar { gap: 8px; }
+  .hw-toolbar-section { flex-wrap: wrap; }
+}
 
 </style>
