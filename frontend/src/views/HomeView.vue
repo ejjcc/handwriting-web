@@ -420,6 +420,7 @@ export default {
       letterFormatBackup: null,
       uploadedFileName: '',
       localStorageItems: ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing', 'strikethrough_length_sigma', 'strikethrough_angle_sigma', 'strikethrough_width_sigma', 'strikethrough_probability', 'strikethrough_width', 'ink_depth_sigma', 'isUnderlined', 'enableEnglishSpacing'],
+      persistentUiItems: ['selectedPreset', 'enableFullPreview'],
       selectedPreset: '',
       builtinPresets: {
         smallUnderlined: {
@@ -457,7 +458,7 @@ export default {
 
     // const localStorageItems = ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing'];//, 'backgroundImage', 'selectedImageFileName'
 
-    this.localStorageItems.forEach(item => {
+    [...this.localStorageItems, ...this.persistentUiItems].forEach(item => {
       const value = localStorage.getItem(item);
       if (value !== null && value !== "undefined") {
         try {
@@ -470,6 +471,16 @@ export default {
         console.log('localstorage缺失item:' + item)
       }
     });
+
+    if (
+      typeof this.selectedPreset !== 'string' ||
+      (this.selectedPreset && !this.builtinPresets[this.selectedPreset])
+    ) {
+      this.selectedPreset = '';
+    }
+    if (typeof this.enableFullPreview !== 'boolean') {
+      this.enableFullPreview = false;
+    }
 
     this.$http.get('/api/fonts_info').then(response => {
       this.options = response.data.map((font, index) => {
@@ -779,6 +790,12 @@ export default {
         localStorage.setItem('enableEnglishSpacing', JSON.stringify(newVal));
       },
       deep: true
+    },
+    selectedPreset(newVal) {
+      localStorage.setItem('selectedPreset', JSON.stringify(newVal));
+    },
+    enableFullPreview(newVal) {
+      localStorage.setItem('enableFullPreview', JSON.stringify(newVal));
     },
   },
 
@@ -1381,6 +1398,7 @@ export default {
       this.selectedFontFileName = '';
       this.selectedImageFileName = '';
       this.selectedOption = '1';
+      this.selectedPreset = '';
       this.previewImage = "/default1.webp";
     },
     loadPreset() {
@@ -1401,6 +1419,7 @@ export default {
         Object.keys(data).forEach(item => {
           this[item] = data[item];
         });
+        this.selectedPreset = '';
 
         this.$swal.fire({
           icon: 'success',
