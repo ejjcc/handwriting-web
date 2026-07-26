@@ -1,7 +1,7 @@
 <template>
     <div id='text_file_select' :class="{ 'tx-slim': slim }">
         <label v-if="!slim" for="textArea">{{ $t('message.text') }}:</label>
-        <textarea id="textArea" class="form-control" v-model="text"
+        <textarea id="textArea" class="form-control" v-model="text" @input="handleManualInput"
             :placeholder="$t('message.enterText')"></textarea>
 
         <template v-if="!slim">
@@ -26,7 +26,7 @@ export default {
     props: {
         slim: { type: Boolean, default: false },
     },
-    emits: ['childEvent', 'file-uploaded'],
+    emits: ['childEvent', 'file-uploaded', 'manual-input'],
 
     data() {
         return {
@@ -53,6 +53,13 @@ export default {
         });
     },
     methods: {
+        handleManualInput() {
+            this.$emit('manual-input');
+        },
+        replaceText(value) {
+            this.text = typeof value === 'string' ? value : '';
+            localStorage.setItem('text', JSON.stringify(this.text));
+        },
         uploadFile(e) {
             let file = e.target.files[0];
             // 当用户选择了一个新的文本文件时，更新 selectedTextFileName

@@ -15,6 +15,14 @@
           :title="$t('message.orUploadDocument') + ' (.doc/.docx/.pdf/.txt/.rtf)'">
           📄 上传文档
         </button>
+        <button class="hw-btn hw-btn-sm hw-btn-letter" @click="openLetterFormatter">
+          <span class="hw-btn-letter-mark" aria-hidden="true">信</span>
+          {{ $t('message.formatChineseLetter') }}
+        </button>
+        <button v-if="letterFormatBackup !== null" class="hw-btn hw-btn-sm hw-btn-ghost"
+          @click="undoLetterFormatting">
+          {{ $t('message.letterUndo') }}
+        </button>
         <span v-if="uploadedFileName" class="hw-filename hw-toolbar-filename" :title="uploadedFileName">
           {{ uploadedFileName }}
         </span>
@@ -41,6 +49,9 @@
         <button class="hw-icon-btn hw-help-btn" @click="showHelp = true" title="语法帮助">?</button>
       </div>
     </div>
+
+    <ChineseLetterFormatter v-if="showLetterFormatter" :source-text="text"
+      @close="showLetterFormatter = false" @apply="applyLetterFormatting" />
 
     <!-- HELP MODAL -->
     <div v-if="showHelp" class="hw-modal-overlay" @click.self="showHelp = false">
@@ -267,7 +278,8 @@
       <main class="hw-pane hw-editor">
         <TextInput slim ref="textInputComp"
           @childEvent="(eventData) => { this.text = eventData }"
-          @file-uploaded="(name) => { this.uploadedFileName = name }"></TextInput>
+          @manual-input="clearLetterFormatBackup"
+          @file-uploaded="handleTextFileUploaded"></TextInput>
       </main>
 
       <!-- RIGHT: PREVIEW -->
@@ -328,6 +340,7 @@
 <script>
 import { mapState } from 'vuex';
 import TextInput from './TextInput.vue';
+import ChineseLetterFormatter from '../components/ChineseLetterFormatter.vue';
 import Swal from 'sweetalert2';
 
 
@@ -341,6 +354,7 @@ export default {
   // },
   components: {
     TextInput,
+    ChineseLetterFormatter,
 
   },
 
@@ -402,6 +416,8 @@ export default {
       enableFullPreview: false,
       showSidebar: true,
       showHelp: false,
+      showLetterFormatter: false,
+      letterFormatBackup: null,
       uploadedFileName: '',
       localStorageItems: ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing', 'strikethrough_length_sigma', 'strikethrough_angle_sigma', 'strikethrough_width_sigma', 'strikethrough_probability', 'strikethrough_width', 'ink_depth_sigma', 'isUnderlined', 'enableEnglishSpacing'],
       selectedPreset: '',
@@ -791,6 +807,44 @@ export default {
       if (tx && typeof tx.triggerTextFileInput === 'function') {
         tx.triggerTextFileInput();
       }
+    },
+    openLetterFormatter() {
+      if (!this.text || !this.text.trim()) {
+        this.$swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'info',
+          title: this.$t('message.letterTextRequired'),
+          showConfirmButton: false,
+          timer: 2200,
+        });
+        return;
+      }
+      this.showLetterFormatter = true;
+    },
+    applyLetterFormatting(formattedText) {
+      const tx = this.$refs.textInputComp;
+      if (!tx || typeof tx.replaceText !== 'function') return;
+
+      this.letterFormatBackup = this.text;
+      tx.replaceText(formattedText);
+      this.showLetterFormatter = false;
+      this.message = this.$t('message.letterFormatApplied');
+    },
+    undoLetterFormatting() {
+      const tx = this.$refs.textInputComp;
+      if (!tx || typeof tx.replaceText !== 'function' || this.letterFormatBackup === null) return;
+
+      const previousText = this.letterFormatBackup;
+      this.letterFormatBackup = null;
+      tx.replaceText(previousText);
+    },
+    clearLetterFormatBackup() {
+      this.letterFormatBackup = null;
+    },
+    handleTextFileUploaded(name) {
+      this.uploadedFileName = name;
+      this.letterFormatBackup = null;
     },
     startQueueFullCountdown(seconds) {
       // 清掉旧计时器
@@ -2117,6 +2171,32 @@ input[type="file"]:hover {
 .hw-btn-ghost:hover:not(:disabled) {
   background: #eaeef2;
   color: #1f2328;
+}
+
+.hw-btn-letter {
+  gap: 6px;
+  color: #7f3029;
+  background: #fffaf0;
+  border-color: #d8b5aa;
+}
+
+.hw-btn-letter:hover:not(:disabled) {
+  color: #69251f;
+  background: #f8ebe5;
+  border-color: #bd8175;
+}
+
+.hw-btn-letter-mark {
+  width: 17px;
+  height: 17px;
+  display: inline-grid;
+  place-items: center;
+  color: #fffaf0;
+  background: #963b32;
+  border-radius: 3px;
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 11px;
+  line-height: 1;
 }
 
 .hw-icon-btn {
