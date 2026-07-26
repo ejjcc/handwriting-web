@@ -509,7 +509,10 @@ def apply_right_align(text, template):
         content = line[m.end():]
         content_w = sum(advance(c) for c in content)
         pad_w = usable - content_w
-        n = int(pad_w // pad_unit) if pad_w > 0 else 0
+        # Handright applies random font-size and word-spacing perturbations
+        # after this estimate. Leave one full-width cell unused so a small
+        # expansion cannot push the final character onto the next line.
+        n = max(0, int(pad_w // pad_unit) - 1) if pad_w > 0 else 0
         out.append("　" * n + content)
         aligned += 1
     if aligned:
