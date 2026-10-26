@@ -1,14 +1,18 @@
 <template>
-  <UserLayout>
+  <transition name="splash-fade">
+    <BookSplash v-if="showSplash" @complete="showSplash = false" />
+  </transition>
+  <!-- <UserLayout v-show="!showSplash"> -->
       <router-view ref="myComponentRef"/>
       <!-- <HomeView /> -->
-  </UserLayout>
+  <!-- </UserLayout> -->
   <PWAInstallPrompt />
 </template>
 
 <script>
-import UserLayout from './views/UserLayout.vue';
+// import UserLayout from './views/UserLayout.vue';
 import PWAInstallPrompt from './components/PWAInstallPrompt.vue';
+import BookSplash from './components/BookSplash.vue';
 // import HomeView from './views/HomeView.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
@@ -17,13 +21,19 @@ import { useHead } from '@vueuse/head';
 export default {
   name: 'App',
   components: {
-    UserLayout,
+    // UserLayout,
     PWAInstallPrompt,
+    BookSplash,
     // HomeView
+  },
+  data() {
+    return {
+      showSplash: !localStorage.getItem('bookSplashShown'),
+    };
   },
   setup() {
     const route = useRoute();
-    const site = 'https://handwrite.14790897.xyz';
+    const site = 'https://handwrite.sixiangjia.de';
     const defaultTitle = '手写文字生成网站 - 在线生成手写图片与 PDF';
     const defaultDesc = '手写文字生成网站，支持多种字体和背景，在线生成高质量手写文字图片与 PDF。适合作业、论文、信件等场景，支持自定义字体、背景与参数调节。';
 
@@ -41,12 +51,12 @@ export default {
         { property: 'og:url', content: canonical.value },
         { property: 'og:title', content: title.value },
         { property: 'og:description', content: description.value },
-        { property: 'og:image', content: '/default1.png' },
+        { property: 'og:image', content: '/default1.webp' },
         { property: 'twitter:card', content: 'summary_large_image' },
         { property: 'twitter:url', content: canonical.value },
         { property: 'twitter:title', content: title.value },
         { property: 'twitter:description', content: description.value },
-        { property: 'twitter:image', content: '/default1.png' },
+        { property: 'twitter:image', content: '/default1.webp' },
       ],
       link: [
         { rel: 'canonical', href: canonical.value },

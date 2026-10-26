@@ -1,8 +1,10 @@
 # Handwritten text generation website
 
+![star](https://atomgit.com/liuweiqing147/handwriting-web/star/badge.svg)
+
 Welcome to my handwritten text generation site! This platform allows you to use existing fonts to create images that mimic handwritten text.
 
-URL: https://handwrite.14790897.xyz
+URL: https://handwrite.sixiangjia.de
 ![Alt text](image.png)
 
 ## Function
@@ -40,3 +42,13 @@ To add fonts, font files are placed in ttf_files in the project root directory
 ## Conclusion
 
 I hope you enjoy using my handwriting generator site to create your personalized handwriting pictures!
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=14790897%2Fhandwriting-web&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=14790897/handwriting-web&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=14790897/handwriting-web&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=14790897/handwriting-web&type=date&legend=top-left" />
+ </picture>
+</a>

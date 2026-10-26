@@ -1,3 +1,179 @@
+# [1.27.0](https://github.com/14790897/handwriting-web/compare/v1.26.0...v1.27.0) (2026-05-30)
+
+
+### Features
+
+* add SW update prompt and optimize caching strategy ([6a0feab](https://github.com/14790897/handwriting-web/commit/6a0feab456d1c7e53d37b4e9925a6619b16b22ec))
+
+# [1.26.0](https://github.com/14790897/handwriting-web/compare/v1.25.2...v1.26.0) (2026-04-25)
+
+
+### Features
+
+* integrate PWA support with Workbox and remove legacy service worker ([fc83a58](https://github.com/14790897/handwriting-web/commit/fc83a58261337622e558a33818e5877401381414))
+
+## [1.25.2](https://github.com/14790897/handwriting-web/compare/v1.25.1...v1.25.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* update URLs to point to the new domain for the handwriting generation site ([e761196](https://github.com/14790897/handwriting-web/commit/e7611969ec86a0bbf86c2ec2c15ea37cb9814634))
+
+## [1.25.1](https://github.com/14790897/handwriting-web/compare/v1.25.0...v1.25.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* ensure SPA entry file is not cached for latest resource indexing ([9c7e02e](https://github.com/14790897/handwriting-web/commit/9c7e02e46cafc16ead85219233155db927309210))
+
+# [1.25.0](https://github.com/14790897/handwriting-web/compare/v1.24.0...v1.25.0) (2026-04-22)
+
+
+### Features
+
+* add axios-retry for automatic request retries on network errors ([6298968](https://github.com/14790897/handwriting-web/commit/6298968593935f8a0fbdc81524893e5e18fef214))
+
+# [1.24.0](https://github.com/14790897/handwriting-web/compare/v1.23.0...v1.24.0) (2026-04-21)
+
+
+### Features
+
+* add conditional rendering for preview header based on image availability ([fc83555](https://github.com/14790897/handwriting-web/commit/fc83555ddac9068019568d458756b55107cd6ab9))
+
+# [1.23.0](https://github.com/14790897/handwriting-web/compare/v1.22.0...v1.23.0) (2026-04-21)
+
+
+### Features
+
+* replace alert messages with Swal toast notifications for improved user experience ([23f3427](https://github.com/14790897/handwriting-web/commit/23f34279cf0f0329ba45a2d328a9e31f0e69a7a5))
+
+# [1.22.0](https://github.com/14790897/handwriting-web/compare/v1.21.1...v1.22.0) (2026-04-21)
+
+
+### Features
+
+* add BookSplash component with splash animation and user interaction ([2aebc96](https://github.com/14790897/handwriting-web/commit/2aebc966f12fe168c56207fe67dc6e88d226ed9f))
+
+## [1.21.1](https://github.com/14790897/handwriting-web/compare/v1.21.0...v1.21.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* 类型判断错误，导致图片参数无法识别 ([1b35ce8](https://github.com/14790897/handwriting-web/commit/1b35ce8498178cae25e090dde01d88a24a15e86b))
+
+# [1.21.0](https://github.com/14790897/handwriting-web/compare/v1.20.4...v1.21.0) (2026-04-18)
+
+
+### Features
+
+* add custom 422 error response for improved field validation feedback ([7e073d3](https://github.com/14790897/handwriting-web/commit/7e073d31c51184890e82691effda2ccbde31c4de))
+
+## [1.20.4](https://github.com/14790897/handwriting-web/compare/v1.20.3...v1.20.4) (2026-04-18)
+
+
+### Bug Fixes
+
+* sw 有网 → 用最新代码，同时写入缓存 → 离线 → 用缓存兜底 , 解决了更新后用户无法使用新页面的问题 ([5368cd4](https://github.com/14790897/handwriting-web/commit/5368cd489805cc512518da26e92ab1c9458eea50))
+
+## [1.20.3](https://github.com/14790897/handwriting-web/compare/v1.20.2...v1.20.3) (2026-04-17)
+
+
+### Bug Fixes
+
+* enhance PWA install prompt handling to remember user dismissal ([17a100f](https://github.com/14790897/handwriting-web/commit/17a100f9f3dac991256c75448ff996177c4a75d1))
+
+## [1.20.2](https://github.com/14790897/handwriting-web/compare/v1.20.1...v1.20.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* update Sentry integration to remove middleware type specification ([ad9dc1a](https://github.com/14790897/handwriting-web/commit/ad9dc1afdb1be11082b5c3a8382e9150412dbf4b))
+
+## [1.20.1](https://github.com/14790897/handwriting-web/compare/v1.20.0...v1.20.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* update Sentry integration to use ASGI middleware type ([8ab319f](https://github.com/14790897/handwriting-web/commit/8ab319f74403de08301943dcd0fcb633a433a731))
+
+# [1.20.0](https://github.com/14790897/handwriting-web/compare/v1.19.0...v1.20.0) (2026-04-17)
+
+
+### Features
+
+* refactor GenerateHandwritingParams and add form dependency generator ([20991ad](https://github.com/14790897/handwriting-web/commit/20991ad8975f6915f6b744115b19d951cc5a09e6))
+
+# [1.19.0](https://github.com/14790897/handwriting-web/compare/v1.18.4...v1.19.0) (2026-04-17)
+
+
+### Bug Fixes
+
+* use run_in_threadpool for handwrite and generate_pdf to improve concurrency ([26ab988](https://github.com/14790897/handwriting-web/commit/26ab988475be0caab17182c74e92e02b378a45d9))
+* 格式验证错误 ([96ab634](https://github.com/14790897/handwriting-web/commit/96ab634811267223303914aa7ee988e74e836bca))
+
+
+### Features
+
+* add queue management for handwriting generation with active task count and user feedback and semaphore ([f93ee91](https://github.com/14790897/handwriting-web/commit/f93ee91e2f8f4d47a12debecfc4ea14be6dc45b4))
+* implement SQLite task storage for cross-process task management ([f02e50b](https://github.com/14790897/handwriting-web/commit/f02e50b11177cae5de075a565d4aa04b862b138b))
+* implement task management for handwriting generation with WebSocket support ([b4a8259](https://github.com/14790897/handwriting-web/commit/b4a82591ec4493becb1efa93308a22482cd8f618))
+
+## [1.18.4](https://github.com/14790897/handwriting-web/compare/v1.18.3...v1.18.4) (2026-03-11)
+
+
+### Bug Fixes
+
+* Failed to execute 'put' on 'Cache': Request method 'POST' is unsupported ([6dbbf73](https://github.com/14790897/handwriting-web/commit/6dbbf732e6f7fbfc518641a95f64432428c5ee2a))
+
+## [1.18.3](https://github.com/14790897/handwriting-web/compare/v1.18.2...v1.18.3) (2026-02-09)
+
+
+### Bug Fixes
+
+* clean up temp directory PDF files ([1a48070](https://github.com/14790897/handwriting-web/commit/1a4807081e85488a02dfad66388d2302015c1d73)), closes [#56](https://github.com/14790897/handwriting-web/issues/56)
+
+## [1.18.2](https://github.com/14790897/handwriting-web/compare/v1.18.1...v1.18.2) (2025-12-26)
+
+
+### Bug Fixes
+
+* update exposed port from 5000 to 5005 in Dockerfile ([e07b8c7](https://github.com/14790897/handwriting-web/commit/e07b8c7a13cfdad97c577327685fdc1d54538e1a))
+
+## [1.18.1](https://github.com/14790897/handwriting-web/compare/v1.18.0...v1.18.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* update gunicorn binding port from 5000 to 5005 in Dockerfile ([c55a7c0](https://github.com/14790897/handwriting-web/commit/c55a7c029d5ebca53f264d39deae6cfe3859bee7))
+
+# [1.18.0](https://github.com/14790897/handwriting-web/compare/v1.17.1...v1.18.0) (2025-12-26)
+
+
+### Features
+
+* add multi-platform support for frontend Docker images in GitHub Actions workflow ([dadcc22](https://github.com/14790897/handwriting-web/commit/dadcc2208d605d316807e7bb64140250c58754f5))
+
+## [1.17.1](https://github.com/14790897/handwriting-web/compare/v1.17.0...v1.17.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* update backend port to 5005 in app.py, docker-compose.yml, and nginx.conf ([a9bf448](https://github.com/14790897/handwriting-web/commit/a9bf4488d8e30db5b36140f229686c4e1d7ef60c))
+
+# [1.17.0](https://github.com/14790897/handwriting-web/compare/v1.16.0...v1.17.0) (2025-12-26)
+
+
+### Features
+
+* sync font assets and update docker-compose configuration ([535170d](https://github.com/14790897/handwriting-web/commit/535170deb0c4c5270d4bfd7d0df2b62e29dfba68))
+
+# [1.16.0](https://github.com/14790897/handwriting-web/compare/v1.15.2...v1.16.0) (2025-12-26)
+
+
+### Features
+
+* chatwoot客服 ([26f23cf](https://github.com/14790897/handwriting-web/commit/26f23cf06019a91ed894ea1d6549864f86af2bc2))
+
 ## [1.15.2](https://github.com/14790897/handwriting-web/compare/v1.15.1...v1.15.2) (2025-12-26)
 
 

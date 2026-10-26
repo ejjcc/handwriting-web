@@ -7,6 +7,7 @@ import router from "./router";
 import store from "./store";
 import i18n from "./i18n";
 import axios from "axios";
+import axiosRetry from "axios-retry";
 import Clarity from "@microsoft/clarity";
 // eslint-disable-next-line no-unused-vars
 import Swal from "sweetalert2";
@@ -57,6 +58,20 @@ script.onload = () => {
   })(window, document, "clarity", "script", "ounxp8da5s");
 };
 
+const chatwootScript = document.createElement("script");
+chatwootScript.async = true;
+chatwootScript.defer = true;
+chatwootScript.src = "https://chatwoot.14790897.xyz/packs/js/sdk.js";
+chatwootScript.onload = () => {
+  if (window.chatwootSDK) {
+    window.chatwootSDK.run({
+      websiteToken: "LqgSJHw9boXsan69qwxSs8eg",
+      baseUrl: "https://chatwoot.14790897.xyz",
+    });
+  }
+};
+document.head.appendChild(chatwootScript);
+
 Sentry.init({
   app,
   dsn: "https://507b601bbd374cf58b7c5468cb434578@o4505255803551744.ingest.sentry.io/4505485557891072",
@@ -88,6 +103,29 @@ app.use(router);
 app.use(i18n);
 app.use(head);
 
+// 配置自动重试：网络错误 或 5xx 响应自动重试，最多 3 次，指数退避
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay, // 1s → 2s → 4s
+  retryCondition: (error) => {
+    // 503 queue_full 是业务状态，不需要重试
+    if (
+      error.response?.status === 503 &&
+      error.response?.data?.status === "queue_full"
+    ) {
+      return false;
+    }
+    // 网络错误 或 5xx 服务端错误时重试
+    return (
+      axiosRetry.isNetworkError(error) ||
+      axiosRetry.isRetryableError(error)
+    );
+  },
+  onRetry: (retryCount, error) => {
+    console.warn(`请求重试第 ${retryCount} 次，原因：${error.message}`);
+  },
+});
+
 app.config.globalProperties.$http = axios;
 app.config.globalProperties.$swal = Swal;
 // const http = axios.create({
@@ -99,3 +137,27 @@ app.config.globalProperties.$swal = Swal;
 // app.use(Viewer);
 
 app.mount("#app");
+
+// Service Worker 版本更新提示
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      // 注销旧版 /sw.js
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const reg of registrations) {
+        if (reg.active?.scriptURL?.includes("sw.js")) {
+          await reg.unregister();
+        }
+      }
+
+      // 监听新版本激活，提示用户刷新
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (confirm("网站已更新到新版本，点击确定刷新页面以加载最新内容。")) {
+          window.location.reload();
+        }
+      });
+    } catch (error) {
+      console.error("[SW] 初始化失败:", error);
+    }
+  });
+}

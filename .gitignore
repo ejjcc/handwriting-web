@@ -34,3 +34,6 @@ transparent_image.png
 # macOS pandoc installer
 backend/pandoc-*-macOS.pkg
 *.pkg
+*.db
+*.bin
+.workbuddy/memory/*
