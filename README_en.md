@@ -5,7 +5,16 @@
 Welcome to my handwritten text generation site! This platform allows you to use existing fonts to create images that mimic handwritten text.
 
 URL: https://handwrite.sixiangjia.de
-![Alt text](image.png)
+
+The current interface splits the workspace into three columns — settings on the left, text in the middle, preview on the right:
+
+![New interface](image-new-ui.png)
+
+The "Old layout" button in the top bar switches back to the previous layout; both edit the same content:
+
+![Old interface](image.png)
+
+📖 **Full documentation (user guide / self-hosting / development): https://mygithub.sixiangjia.de/handwriting-web/en/**
 
 ## Function
 
@@ -20,6 +29,25 @@ Upload your desired background image to add a personal touch to your handwriting
 ### Tunable parameters
 
 You have full control over various parameters such as margins (top, bottom, left, right) and random perturbation between characters. This allows you to fine-tune the look of your handwritten text.
+
+### Text layout markers
+
+Use standalone markers in the text input to control layout:
+
+- `---` (three or more dashes) forces the following content onto a new page.
+- Prefix a line with `>>>` to right-align it, which is useful for signatures and dates.
+
+For example:
+
+```text
+First page
+---
+Second page
+>>>Signature
+>>>July 27, 2026
+```
+
+The markers control layout and are not printed in the generated handwriting.
 
 ### Extract text from various file types
 

@@ -54,10 +54,6 @@ function looksLikeSalutation(line) {
   return value.length <= 30 && /[：:]$/.test(value);
 }
 
-export function formatChineseDate(date = new Date()) {
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-}
-
 export function extractLetterEnding(text) {
   const lines = normalizeNewlines(text).split("\n");
   const contentIndexes = lines
@@ -100,7 +96,7 @@ export function extractLetterEnding(text) {
       removedIndexes.add(candidateIndex);
     }
     signature = signatureLines.join("\n");
-  } else if (lastIsRightAligned) {
+  } else if (lastIsRightAligned || looksLikeSignature(lastLine)) {
     signature = stripRightAlignMarker(lastLine);
     removedIndexes.add(lastIndex);
   }
@@ -116,6 +112,13 @@ export function extractLetterEnding(text) {
     date,
     detectedEnding: removedIndexes.size > 0,
   };
+}
+
+export function restoreLetterEnding({ body, signature = "", date = "" }) {
+  return [body, signature, date]
+    .map((value) => normalizeNewlines(value).trim())
+    .filter(Boolean)
+    .join("\n");
 }
 
 export function formatChineseLetter({ body, signature = "", date = "" }) {

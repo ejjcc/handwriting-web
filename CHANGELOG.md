@@ -1,3 +1,130 @@
+## [1.34.4](https://github.com/14790897/handwriting-web/compare/v1.34.3...v1.34.4) (2026-10-21)
+
+
+### Bug Fixes
+
+* 读取 docx 时把表格里的文字也提取出来 ([#100](https://github.com/14790897/handwriting-web/issues/100)) ([240c26a](https://github.com/14790897/handwriting-web/commit/240c26af1cfb571f227bc9288bc4b0bd96639216))
+
+## [1.34.3](https://github.com/14790897/handwriting-web/compare/v1.34.2...v1.34.3) (2026-10-21)
+
+
+### Bug Fixes
+
+* 识别不到横线时给提示，而不是覆盖用户边距 ([#95](https://github.com/14790897/handwriting-web/issues/95)) ([f38593d](https://github.com/14790897/handwriting-web/commit/f38593d60da26929e5970c14b564461a80acd9ca)), closes [#71](https://github.com/14790897/handwriting-web/issues/71)
+* 页数上限统一为 10 页，文案与截断不再各说各话 ([#98](https://github.com/14790897/handwriting-web/issues/98)) ([5b4c861](https://github.com/14790897/handwriting-web/commit/5b4c8619904ad5b1d2d3dfa728ce264304b9e061)), closes [#72](https://github.com/14790897/handwriting-web/issues/72) [#72](https://github.com/14790897/handwriting-web/issues/72) [#72](https://github.com/14790897/handwriting-web/issues/72)
+
+## [1.34.2](https://github.com/14790897/handwriting-web/compare/v1.34.1...v1.34.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* 业务错误标记为 failed，前端能看到失败原因 ([#96](https://github.com/14790897/handwriting-web/issues/96)) ([e9eb645](https://github.com/14790897/handwriting-web/commit/e9eb645b82e225da072791017b9001e6d698dd4e)), closes [#70](https://github.com/14790897/handwriting-web/issues/70)
+
+## [1.34.1](https://github.com/14790897/handwriting-web/compare/v1.34.0...v1.34.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* tell users where the downloaded file was saved ([#97](https://github.com/14790897/handwriting-web/issues/97)) ([8946e51](https://github.com/14790897/handwriting-web/commit/8946e5172bc856eae6bfd51ba9f55a1cc065d091))
+
+# [1.34.0](https://github.com/14790897/handwriting-web/compare/v1.33.1...v1.34.0) (2026-10-03)
+
+
+### Features
+
+* make the three workspace columns resizable and remembered ([#91](https://github.com/14790897/handwriting-web/issues/91)) ([316e1d8](https://github.com/14790897/handwriting-web/commit/316e1d8a81683b2bbe5bd4f16a3ca93ed2dc9da7)), closes [#c8d4e3](https://github.com/14790897/handwriting-web/issues/c8d4e3) [#9db3](https://github.com/14790897/handwriting-web/issues/9db3)
+
+## [1.33.1](https://github.com/14790897/handwriting-web/compare/v1.33.0...v1.33.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **backend:** 钉住 opencv-python<5 修复识别接口 500，并补齐三处测试空白 ([#85](https://github.com/14790897/handwriting-web/issues/85)) ([ee8075b](https://github.com/14790897/handwriting-web/commit/ee8075b62a2080e7e9164a4f34780dc00a9f44f3))
+
+# [1.33.0](https://github.com/14790897/handwriting-web/compare/v1.32.3...v1.33.0) (2026-10-03)
+
+
+### Features
+
+* **desktop:** 增加 macOS 打包（arm64、未签名） ([#88](https://github.com/14790897/handwriting-web/issues/88)) ([1a85571](https://github.com/14790897/handwriting-web/commit/1a85571442797a32532b307781e5d6db8cc94b39))
+
+## [1.32.3](https://github.com/14790897/handwriting-web/compare/v1.32.2...v1.32.3) (2026-10-03)
+
+
+### Bug Fixes
+
+* **desktop:** 桌面版图标改用站点图标，并把重模块移出启动路径 ([#84](https://github.com/14790897/handwriting-web/issues/84)) ([4e05cfb](https://github.com/14790897/handwriting-web/commit/4e05cfbcb8c7400ba9c6d937f3dd3dd6c7b399e5))
+
+## [1.32.2](https://github.com/14790897/handwriting-web/compare/v1.32.1...v1.32.2) (2026-09-29)
+
+
+### Performance Improvements
+
+* reduce first-screen load time by deferring non-critical startup work ([#63](https://github.com/14790897/handwriting-web/issues/63)) ([2cedc37](https://github.com/14790897/handwriting-web/commit/2cedc370152b240df8b955938d771f7531c3d1ac))
+
+## [1.32.1](https://github.com/14790897/handwriting-web/compare/v1.32.0...v1.32.1) (2026-09-29)
+
+
+### Bug Fixes
+
+* **desktop:** 构建脚本里的 Python 输出强制走 UTF-8，修发版构建失败 ([#79](https://github.com/14790897/handwriting-web/issues/79)) ([739803b](https://github.com/14790897/handwriting-web/commit/739803b5cfe6bc8db862a057d64eb80134894d0e))
+
+# [1.32.0](https://github.com/14790897/handwriting-web/compare/v1.31.0...v1.32.0) (2026-09-29)
+
+
+### Features
+
+* add a Windows desktop build (Electron shell + packaged backend) ([#78](https://github.com/14790897/handwriting-web/issues/78)) ([1c01574](https://github.com/14790897/handwriting-web/commit/1c01574cab75e94cc5797591f278b6cf010379c6))
+
+# [1.31.0](https://github.com/14790897/handwriting-web/compare/v1.30.1...v1.31.0) (2026-09-29)
+
+
+### Features
+
+* restructure home page into a top action bar and three columns ([#77](https://github.com/14790897/handwriting-web/issues/77)) ([890eb98](https://github.com/14790897/handwriting-web/commit/890eb985c3e7a59db4cc4bd782604e394a9192ce)), closes [#0056b3](https://github.com/14790897/handwriting-web/issues/0056b3) [#003d73](https://github.com/14790897/handwriting-web/issues/003d73)
+
+## [1.30.1](https://github.com/14790897/handwriting-web/compare/v1.30.0...v1.30.1) (2026-09-29)
+
+
+### Performance Improvements
+
+* shrink PDF exports by lowering the embedded JPEG quality ([#61](https://github.com/14790897/handwriting-web/issues/61)) ([45c9f9e](https://github.com/14790897/handwriting-web/commit/45c9f9e77ab3d3bc5fb1821f7754b00ca70fb833))
+
+# [1.30.0](https://github.com/14790897/handwriting-web/compare/v1.29.0...v1.30.0) (2026-09-29)
+
+
+### Features
+
+* add one-click Chinese letter formatting ([#67](https://github.com/14790897/handwriting-web/issues/67)) ([f41b350](https://github.com/14790897/handwriting-web/commit/f41b350ca7be56c5f4595509058e3980a363c611)), closes [#007](https://github.com/14790897/handwriting-web/issues/007) [#0056b3](https://github.com/14790897/handwriting-web/issues/0056b3) [#003d73](https://github.com/14790897/handwriting-web/issues/003d73)
+
+# [1.29.0](https://github.com/14790897/handwriting-web/compare/v1.28.0...v1.29.0) (2026-07-28)
+
+
+### Features
+
+* add a persistent built-in letter preset ([#68](https://github.com/14790897/handwriting-web/issues/68)) ([af7f063](https://github.com/14790897/handwriting-web/commit/af7f063b37b43f2116e646a6a2e5e0ff6ce8f78d))
+
+# [1.28.0](https://github.com/14790897/handwriting-web/compare/v1.27.2...v1.28.0) (2026-07-28)
+
+
+### Features
+
+* add manual page breaks and right-aligned lines ([#66](https://github.com/14790897/handwriting-web/issues/66)) ([3bcc098](https://github.com/14790897/handwriting-web/commit/3bcc098e770efb30a7b756ce29c2192983f7e3b0))
+
+## [1.27.2](https://github.com/14790897/handwriting-web/compare/v1.27.1...v1.27.2) (2026-07-27)
+
+
+### Bug Fixes
+
+* remember full preview preference ([#65](https://github.com/14790897/handwriting-web/issues/65)) ([90b79dd](https://github.com/14790897/handwriting-web/commit/90b79dd89a69eaf2d96332a5aa06ad9dd5c495ea))
+
+## [1.27.1](https://github.com/14790897/handwriting-web/compare/v1.27.0...v1.27.1) (2026-07-27)
+
+
+### Bug Fixes
+
+* prevent closing punctuation from starting a line ([#64](https://github.com/14790897/handwriting-web/issues/64)) ([0aaff84](https://github.com/14790897/handwriting-web/commit/0aaff84fecc6904a5d0c5acc96615e8a249cf0bd))
+
 # [1.27.0](https://github.com/14790897/handwriting-web/compare/v1.26.0...v1.27.0) (2026-05-30)
 
 
