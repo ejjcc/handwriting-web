@@ -1,5 +1,9 @@
-const assert = require("node:assert/strict");
-const test = require("node:test");
+const assert = require("assert").strict;
+
+const tests = [];
+function test(name, run) {
+  tests.push({ name, run });
+}
 
 const formatterModule = import("../src/utils/chineseLetterFormatter.mjs");
 
@@ -113,4 +117,41 @@ test("recognizes a short month-and-day date", async () => {
   assert.equal(ending.body, "正文。");
   assert.equal(ending.signature, "张三");
   assert.equal(ending.date, "7月27日");
+});
+
+test("formats a body-only letter without adding an ending", async () => {
+  const { formatChineseLetter } = await formatterModule;
+
+  assert.equal(
+    formatChineseLetter({ body: "妈妈：\n\n最近一切都好。" }),
+    "妈妈：\n　　最近一切都好。"
+  );
+});
+
+test("recognizes a signature without a date", async () => {
+  const { extractLetterEnding } = await formatterModule;
+  const ending = extractLetterEnding("正文。\n张三");
+
+  assert.equal(ending.body, "正文。");
+  assert.equal(ending.signature, "张三");
+  assert.equal(ending.date, "");
+});
+
+test("restores a falsely detected ending to the body", async () => {
+  const { extractLetterEnding, restoreLetterEnding } = await formatterModule;
+  const original = "正文。\n早点睡\n2026年7月27日";
+  const ending = extractLetterEnding(original);
+
+  assert.equal(restoreLetterEnding(ending), original);
+});
+
+(async () => {
+  for (const { name, run } of tests) {
+    await run();
+    console.log(`✓ ${name}`);
+  }
+  console.log(`${tests.length} tests passed`);
+})().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
 });

@@ -1,9 +1,10 @@
 <template>
-  <div class="hw-app">
+  <div class="hw-app" data-testid="app-shell">
+    <header class="hw-header" data-testid="app-header">
     <!-- TOP TOOLBAR -->
     <div class="hw-toolbar">
       <div class="hw-toolbar-section hw-toolbar-left">
-        <button class="hw-icon-btn hw-sidebar-toggle" @click="toggleSidebar"
+        <button class="hw-icon-btn hw-sidebar-toggle" data-testid="sidebar-toggle-btn" @click="toggleSidebar"
           :title="showSidebar ? '收起设置' : '展开设置'">
           {{ showSidebar ? '◀' : '☰' }}
         </button>
@@ -11,42 +12,42 @@
       </div>
 
       <div class="hw-toolbar-section hw-toolbar-center">
-        <button class="hw-btn hw-btn-sm" @click="triggerTextUpload"
+        <button class="hw-btn hw-btn-sm" @click="triggerTextUpload" data-testid="text-file-btn"
           :title="$t('message.orUploadDocument') + ' (.doc/.docx/.pdf/.txt/.rtf)'">
           📄 上传文档
         </button>
-        <button class="hw-btn hw-btn-sm hw-btn-letter" @click="openLetterFormatter">
+        <button class="hw-btn hw-btn-sm hw-btn-letter" @click="openLetterFormatter" data-testid="letter-format-btn">
           <span class="hw-btn-letter-mark" aria-hidden="true">信</span>
           {{ $t('message.formatChineseLetter') }}
         </button>
         <button v-if="letterFormatBackup !== null" class="hw-btn hw-btn-sm hw-btn-ghost"
-          @click="undoLetterFormatting">
+          @click="undoLetterFormatting" data-testid="letter-undo-btn">
           {{ $t('message.letterUndo') }}
         </button>
-        <span v-if="uploadedFileName" class="hw-filename hw-toolbar-filename" :title="uploadedFileName">
+        <span v-if="uploadedFileName" class="hw-filename hw-toolbar-filename" data-testid="text-file-name" :title="uploadedFileName">
           {{ uploadedFileName }}
         </span>
       </div>
 
       <div class="hw-toolbar-section hw-toolbar-right">
-        <button class="hw-btn hw-btn-primary" @click="generateHandwriting(preview = true)"
+        <button class="hw-btn hw-btn-primary" @click="generateHandwriting(preview = true)" data-testid="preview-btn"
           :disabled="shouldDisableButtons">
           {{ buttonText || $t('message.preview') }}
         </button>
-        <button v-if="isDevEnv" class="hw-btn hw-btn-ghost" @click="toggleFullPreview"
+        <button v-if="isDevEnv" class="hw-btn hw-btn-ghost" @click="toggleFullPreview" data-testid="full-preview-toggle-btn"
           :disabled="shouldDisableButtons">
           全量预览：{{ enableFullPreview ? '开' : '关' }}
         </button>
-        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false)"
+        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false)" data-testid="generate-image-btn"
           :disabled="shouldDisableButtons">
           {{ buttonText || $t('message.generateFullHandwritingImage') }}
         </button>
-        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false, pdf_save = true)"
+        <button class="hw-btn hw-btn-success" @click="generateHandwriting(preview = false, pdf_save = true)" data-testid="generate-pdf-btn"
           :disabled="shouldDisableButtons">
           {{ buttonText || $t('message.generatePdf') }}
         </button>
         <router-link to="/Feedback" class="hw-btn hw-btn-ghost">{{ $t('message.feedback') }}</router-link>
-        <button class="hw-icon-btn hw-help-btn" @click="showHelp = true" title="语法帮助">?</button>
+        <button class="hw-icon-btn hw-help-btn" @click="showHelp = true" title="语法帮助" data-testid="syntax-help-btn">?</button>
       </div>
     </div>
 
@@ -54,7 +55,7 @@
       @close="showLetterFormatter = false" @apply="applyLetterFormatting" />
 
     <!-- HELP MODAL -->
-    <div v-if="showHelp" class="hw-modal-overlay" @click.self="showHelp = false">
+    <div v-if="showHelp" class="hw-modal-overlay" data-testid="syntax-help-dialog" @click.self="showHelp = false">
       <div class="hw-modal">
         <div class="hw-modal-header">
           <span class="hw-modal-title">语法帮助</span>
@@ -88,14 +89,23 @@
 
     <!-- ALERT MESSAGES -->
     <div v-if="message || uploadMessage" class="hw-alerts">
-      <div v-if="message" class="alert alert-info hw-alert">{{ message }}</div>
-      <div v-if="uploadMessage" class="alert alert-info hw-alert">{{ uploadMessage }}</div>
+      <div v-if="message" class="alert alert-info hw-alert" data-testid="message-info">{{ message }}</div>
+      <div v-if="uploadMessage" class="alert alert-info hw-alert" data-testid="message-upload">{{ uploadMessage }}</div>
     </div>
 
+    <div v-if="downloadSavedPath" class="hw-alerts" data-testid="download-saved-hint">
+      <span>{{ $t('message.downloadSavedTo') }}</span>
+      <span data-testid="download-saved-path">{{ downloadSavedPath }}</span>
+      <button class="hw-btn hw-btn-sm" data-testid="open-download-folder-btn" @click="openDownloadFolder">{{ $t('message.openDownloadFolder') }}</button>
+    </div>
+    <span v-if="lastPdfDownloadBytes > 0" data-testid="pdf-download-bytes" style="display: none;">{{ lastPdfDownloadBytes }}</span>
+
+    </header>
+
     <!-- 3-PANE BODY -->
-    <div class="hw-split">
+    <div class="hw-split" ref="workspace" data-testid="workspace" :style="workspaceStyle" :class="{ 'sidebar-hidden': !showSidebar }">
       <!-- LEFT: SETTINGS SIDEBAR (collapsible) -->
-      <aside v-if="showSidebar" class="hw-pane hw-sidebar">
+      <aside v-if="showSidebar" class="hw-pane hw-sidebar" ref="panelSettings" data-testid="panel-settings">
         <div class="hw-sidebar-header">
           <span class="hw-sidebar-title">设置</span>
           <button class="hw-icon-btn" @click="toggleSidebar" title="收起">◀</button>
@@ -104,15 +114,15 @@
         <section class="hw-section">
           <h3 class="hw-section-title">预设</h3>
           <div class="hw-field">
-            <select v-model="selectedPreset" @change="applyPreset" class="hw-select hw-select-grow">
+            <select :value="selectedPreset" @change="applyPreset" :disabled="!presetOptionsReady" data-testid="builtin-preset-select" class="hw-select hw-select-grow">
               <option value="">{{ $t('message.presetNone') }}</option>
               <option value="smallUnderlined">{{ $t('message.presetSmallUnderlined') }}</option>
             </select>
           </div>
           <div class="hw-row hw-row-tight">
-            <button class="hw-btn hw-btn-sm" @click="loadPreset">{{ $t('message.loadSettings') }}</button>
-            <button class="hw-btn hw-btn-sm" @click="savePreset">{{ $t('message.saveSettings') }}</button>
-            <button class="hw-btn hw-btn-sm" @click="resetSettings">{{ $t('message.resetSettings') }}</button>
+            <button class="hw-btn hw-btn-sm" @click="loadPreset" data-testid="load-settings-btn">{{ $t('message.loadSettings') }}</button>
+            <button class="hw-btn hw-btn-sm" @click="savePreset" data-testid="save-settings-btn">{{ $t('message.saveSettings') }}</button>
+            <button class="hw-btn hw-btn-sm" @click="resetSettings" data-testid="reset-settings-btn">{{ $t('message.resetSettings') }}</button>
           </div>
         </section>
 
@@ -122,9 +132,9 @@
           <div class="hw-field">
             <label class="hw-field-label">{{ $t('message.fontFile') }}</label>
             <div class="hw-field-control hw-row">
-              <button class="hw-btn hw-btn-sm" @click="triggerFontFileInput">{{ $t('message.chooseFile') }}</button>
-              <input type="file" ref="fontFileInput" @change="onFontChange" style="display: none;" />
-              <select v-model="selectedOption" class="hw-select hw-select-grow">
+              <button class="hw-btn hw-btn-sm" @click="triggerFontFileInput" data-testid="font-file-btn">{{ $t('message.chooseFile') }}</button>
+              <input type="file" ref="fontFileInput" data-testid="font-file-input" @change="onFontChange" style="display: none;" />
+              <select v-model="selectedOption" data-testid="font-select" class="hw-select hw-select-grow">
                 <option v-for="option in options" :value="option.value" :key="option.value">
                   {{ option.text }}
                 </option>
@@ -135,7 +145,7 @@
           <div class="hw-field">
             <label class="hw-field-label">{{ $t('message.backgroundImageFile') }}</label>
             <div class="hw-field-control hw-row">
-              <button class="hw-btn hw-btn-sm" @click="triggerImageFileInput"
+              <button class="hw-btn hw-btn-sm" @click="triggerImageFileInput" data-testid="background-image-btn"
                 :class="{ 'button-disabled': isDimensionSpecified }"
                 :title="isDimensionSpecified ? $t('message.widthAndHeightSpecified') : ''">
                 {{ $t('message.chooseFile') }}
@@ -145,7 +155,7 @@
                 </span>
               </button>
               <span class="hw-filename" v-if="selectedImageFileName">{{ selectedImageFileName }}</span>
-              <input type="file" ref="imageFileInput" @change="onBackgroundImageChange" style="display: none;" />
+              <input type="file" ref="imageFileInput" data-testid="background-image-input" @change="onBackgroundImageChange" style="display: none;" />
               <span v-if="isLoading" class="loader">{{ $t('message.loading') }}...</span>
             </div>
           </div>
@@ -156,24 +166,24 @@
 
           <div class="hw-field hw-field-inline">
             <label class="hw-field-label">{{ $t('message.width') }}</label>
-            <input class="hw-input" type="number" v-model="width" :disabled="isBackgroundImageSpecified"
+            <input class="hw-input" type="number" v-model="width" data-testid="width-input" :disabled="isBackgroundImageSpecified"
               :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
           </div>
 
           <div class="hw-field hw-field-inline">
             <label class="hw-field-label">{{ $t('message.height') }}</label>
-            <input class="hw-input" type="number" v-model="height" :disabled="isBackgroundImageSpecified"
+            <input class="hw-input" type="number" v-model="height" data-testid="height-input" :disabled="isBackgroundImageSpecified"
               :title="isBackgroundImageSpecified ? $t('message.backgroundImageSpecified') : ''" />
             <button type="button" class="hw-icon-btn" title="清空宽高" @click="clearDimensions">×</button>
           </div>
 
           <div class="hw-field hw-field-checkbox">
-            <input type="checkbox" id="optionUnderline" v-model="isUnderlined" />
+            <input type="checkbox" id="optionUnderline" v-model="isUnderlined" data-testid="underline-toggle" />
             <label for="optionUnderline">增加下划线</label>
           </div>
 
           <div class="hw-field hw-field-checkbox">
-            <input type="checkbox" id="optionEnglishSpacing" v-model="enableEnglishSpacing" />
+            <input type="checkbox" id="optionEnglishSpacing" v-model="enableEnglishSpacing" data-testid="english-spacing-toggle" />
             <label for="optionEnglishSpacing">{{ $t('message.enableEnglishSpacing') }}</label>
           </div>
         </section>
@@ -183,30 +193,30 @@
 
           <div class="hw-field hw-field-inline">
             <label class="hw-field-label">{{ $t('message.fontSize') }}</label>
-            <input class="hw-input" type="number" v-model="fontSize" placeholder="recommend > 100" />
+            <input class="hw-input" type="number" v-model="fontSize" data-testid="font-size-input" placeholder="recommend > 100" />
           </div>
 
           <div class="hw-field hw-field-inline">
             <label class="hw-field-label">{{ $t('message.lineSpacing') }}</label>
-            <input class="hw-input" type="number" v-model="lineSpacing" />
+            <input class="hw-input" type="number" v-model="lineSpacing" data-testid="line-spacing-input" />
           </div>
 
           <div class="hw-grid-2">
             <div class="hw-field hw-field-inline">
               <label class="hw-field-label" :title="$t('message.topMargin')">上</label>
-              <input class="hw-input" type="number" v-model="marginTop" />
+              <input class="hw-input" type="number" v-model="marginTop" data-testid="margin-top-input" />
             </div>
             <div class="hw-field hw-field-inline">
               <label class="hw-field-label" :title="$t('message.bottomMargin')">下</label>
-              <input class="hw-input" type="number" v-model="marginBottom" />
+              <input class="hw-input" type="number" v-model="marginBottom" data-testid="margin-bottom-input" />
             </div>
             <div class="hw-field hw-field-inline">
               <label class="hw-field-label" :title="$t('message.leftMargin')">左</label>
-              <input class="hw-input" type="number" v-model="marginLeft" />
+              <input class="hw-input" type="number" v-model="marginLeft" data-testid="margin-left-input" />
             </div>
             <div class="hw-field hw-field-inline">
               <label class="hw-field-label" :title="$t('message.rightMargin')">右</label>
-              <input class="hw-input" type="number" v-model="marginRight" />
+              <input class="hw-input" type="number" v-model="marginRight" data-testid="margin-right-input" />
             </div>
           </div>
         </section>
@@ -274,42 +284,51 @@
         </section>
       </aside>
 
+      <div v-if="showSidebar" class="resizer" data-testid="resizer-settings" role="separator" aria-orientation="vertical"
+        :class="{ active: resizeState && resizeState.side === 'left' }"
+        :aria-label="$t('message.resizeColumnLeft')" :title="$t('message.resizeColumnHint')" tabindex="0"
+        @pointerdown="startResize('left', $event)" @pointermove="onResizeMove" @pointerup="endResize"
+        @pointercancel="endResize" @dblclick="resetColumnWidth('left')"
+        @keydown="onResizerKeydown('left', $event)"></div>
+
       <!-- MIDDLE: EDITOR (text input) -->
-      <main class="hw-pane hw-editor">
+      <main class="hw-pane hw-editor" ref="panelText" data-testid="panel-text">
         <TextInput slim ref="textInputComp"
           @childEvent="(eventData) => { this.text = eventData }"
           @manual-input="clearLetterFormatBackup"
           @file-uploaded="handleTextFileUploaded"></TextInput>
       </main>
 
+      <div class="resizer" data-testid="resizer-preview" role="separator" aria-orientation="vertical"
+        :class="{ active: resizeState && resizeState.side === 'right' }"
+        :aria-label="$t('message.resizeColumnRight')" :title="$t('message.resizeColumnHint')" tabindex="0"
+        @pointerdown="startResize('right', $event)" @pointermove="onResizeMove" @pointerup="endResize"
+        @pointercancel="endResize" @dblclick="resetColumnWidth('right')"
+        @keydown="onResizerKeydown('right', $event)"></div>
+
       <!-- RIGHT: PREVIEW -->
-      <aside class="hw-pane hw-pane-preview">
+      <aside class="hw-pane hw-pane-preview" ref="panelPreview" data-testid="panel-preview">
         <div class="hw-preview-header">
           <h2 class="hw-preview-title">{{ $t('message.preview') }}</h2>
-          <span v-if="previewImages && previewImages.length > 1" class="hw-preview-page-info">
+          <span v-if="previewImages && previewImages.length > 1" class="hw-preview-page-info" data-testid="preview-page-indicator">
             共 {{ previewImages.length }} 页
           </span>
         </div>
 
         <div class="hw-preview-body">
-          <div v-if="isProductionSite() && text && text.length > 0" class="hw-page-hint">
-            预计生成 <strong>{{ estimatePageCount() }}</strong> 页
-            <span v-if="estimatePageCount() > 10" class="hw-page-hint-warn">
-              （线上限制最多 10 页，超出部分将被截断）
-            </span>
-          </div>
+          <GenerationStatus :generating="isGenerating" :cooldown-seconds="remainingCooldown" :page-count="estimatedPages" />
 
-          <div class="hw-preview-images">
+          <div class="hw-preview-images" data-testid="preview-area">
             <template v-if="previewImages && previewImages.length > 0">
               <div v-for="(img, idx) in previewImages" :key="idx" class="hw-preview-image-item">
-                <img :src="img" :alt="$t('message.previewImage') + ' ' + (idx + 1)" />
-                <div v-if="previewImages.length > 1" class="hw-preview-page-label">
+                <img :src="img" data-testid="preview-image" :alt="$t('message.previewImage') + ' ' + (idx + 1)" />
+                <div v-if="previewImages.length > 1" class="hw-preview-page-label" data-testid="preview-page-label">
                   第 {{ idx + 1 }} 页 / 共 {{ previewImages.length }} 页
                 </div>
               </div>
             </template>
             <div v-else class="hw-preview-image-item">
-              <img :src="previewImage" :alt="$t('message.previewImage')" />
+              <img :src="previewImage" data-testid="preview-image" :alt="$t('message.previewImage')" />
             </div>
           </div>
         </div>
@@ -317,7 +336,7 @@
     </div>
 
     <!-- STATUS BAR -->
-    <div class="hw-statusbar">
+    <div class="hw-statusbar" data-testid="site-footer">
       <div class="hw-statusbar-left">
         <span class="hw-status-item" v-if="text">字数: {{ text.length }}</span>
         <span class="hw-status-item" v-if="text && text.length > 0">预计页数: {{ estimatePageCount() }}</span>
@@ -331,6 +350,7 @@
         <span class="hw-status-item">{{ $t('message.projectAddress') }}:
           <a href="https://github.com/14790897/handwriting-web" class="hw-link">GitHub</a>
         </span>
+        <span v-if="appVersion" class="hw-status-item" data-testid="app-version">v{{ appVersion }}</span>
         <span class="hw-status-item hw-status-tip">{{ $t('message.freeprompt') }}</span>
       </div>
     </div>
@@ -341,9 +361,53 @@
 import { mapState } from 'vuex';
 import TextInput from './TextInput.vue';
 import ChineseLetterFormatter from '../components/ChineseLetterFormatter.vue';
+import GenerationStatus from '../components/GenerationStatus.vue';
+import { hasDesktopBridge } from '../desktop';
+import { MAX_PAGES, buildPageLimitDialog, exceedsPageLimit } from '../utils/pageLimit.mjs';
 import Swal from 'sweetalert2';
 
+const BUILTIN_PRESETS = {
+  smallUnderlined: {
+    fontName: '云烟体.ttf',
+    values: {
+      fontSize: 70,
+      lineSpacing: 100,
+      width: 2481,
+      height: 3507,
+      marginTop: 150,
+      marginBottom: 150,
+      marginLeft: 150,
+      marginRight: 150,
+      lineSpacingSigma: 1,
+      fontSizeSigma: 1,
+      wordSpacingSigma: 2,
+      perturbXSigma: 1,
+      perturbYSigma: 1,
+      perturbThetaSigma: 0.05,
+      wordSpacing: 2,
+      strikethrough_length_sigma: 2,
+      strikethrough_angle_sigma: 2,
+      strikethrough_width_sigma: 2,
+      strikethrough_probability: 0,
+      strikethrough_width: 8,
+      ink_depth_sigma: 30,
+      isUnderlined: true,
+      enableEnglishSpacing: false,
+    },
+  },
+};
 
+
+
+// 三栏拖动：左右两栏各自的最小宽度、中栏的最小宽度（px），
+// 以及 CSS 里那条间隔轨道的宽度（分隔条的拖动热区就画在它上面）
+const MIN_COLUMN_WIDTH = 200;
+const MIN_MIDDLE_WIDTH = 300;
+const GUTTER_WIDTH = 16;
+// 分隔条拿到键盘焦点后，左右方向键每次调整的像素
+const KEYBOARD_RESIZE_STEP = 20;
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 export default {
   // props: {
@@ -355,12 +419,15 @@ export default {
   components: {
     TextInput,
     ChineseLetterFormatter,
+    GenerationStatus,
 
   },
 
   data() {
     return {
       text: "",
+      // 页面底部展示的版本号，来自 /api/version；取不到就不显示
+      appVersion: "",
       fontFile: null,
       backgroundImage: null,
       fontSize: 124,
@@ -387,10 +454,14 @@ export default {
       errorMessage: '',  // 错误消息
       message: '',  // 提示消息
       uploadMessage: '',  // 上传提示消息
+      lastPdfDownloadBytes: 0,  // 最近一次 PDF 下载的字节数，供 e2e 核对
+      downloadSavedPath: '',  // 桌面版：主进程回传的最后一次下载的绝对路径，网页版永远是空
       selectedFontFileName: '',
       selectedImageFileName: '',
       //字体下拉选框
       selectedOption: '1',  // 当前选中的选项
+      selectedPreset: '',
+      builtinPresets: BUILTIN_PRESETS,
       options: '',  // 下拉选项
       isLoading: false, //7.6
       strikethrough_length_sigma: 2,
@@ -416,45 +487,40 @@ export default {
       enableFullPreview: false,
       showSidebar: true,
       showHelp: false,
+      uploadedFileName: '',
+      // 三栏宽度：null 表示这一栏还用 CSS 里的默认轨道（左 300px / 右 1fr），
+      // 拖动过一次就钉成固定像素值，中栏吃掉剩余空间
+      workspaceColumns: { left: null, right: null },
+      // 实际渲染用的宽度：窗口放得下时就等于 workspaceColumns，放不下才按比例收窄。
+      // 和上面分开，是为了窗口重新变宽后能还原用户自己拖出来的宽度
+      appliedColumns: { left: null, right: null },
+      // 拖动中的临时状态：起始指针位置、起始栏宽、可用总宽，仅拖动期间存在
+      resizeState: null,
       showLetterFormatter: false,
       letterFormatBackup: null,
-      uploadedFileName: '',
       localStorageItems: ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing', 'strikethrough_length_sigma', 'strikethrough_angle_sigma', 'strikethrough_width_sigma', 'strikethrough_probability', 'strikethrough_width', 'ink_depth_sigma', 'isUnderlined', 'enableEnglishSpacing'],
-      persistentUiItems: ['selectedPreset', 'enableFullPreview'],
-      selectedPreset: '',
-      builtinPresets: {
-        smallUnderlined: {
-          fontName: '云烟体.ttf',
-          values: {
-            fontSize: 70,
-            lineSpacing: 100,
-            width: 2481,
-            height: 3507,
-            marginTop: 150,
-            marginBottom: 150,
-            marginLeft: 150,
-            marginRight: 150,
-            lineSpacingSigma: 1,
-            fontSizeSigma: 1,
-            wordSpacingSigma: 2,
-            perturbXSigma: 1,
-            perturbYSigma: 1,
-            perturbThetaSigma: 0.05,
-            wordSpacing: 2,
-            strikethrough_length_sigma: 2,
-            strikethrough_angle_sigma: 2,
-            strikethrough_width_sigma: 2,
-            strikethrough_probability: 0,
-            strikethrough_width: 8,
-            ink_depth_sigma: 30,
-            isUnderlined: true,
-            enableEnglishSpacing: false,
-          },
-        },
-      },
+      // 这些项在 created() 里统一从 localStorage 还原。
+      // workspaceColumns 没有配 watcher：拖动过程中每帧都写一次不值得，改成收手时才落盘
+      persistentUiItems: ['enableFullPreview', 'workspaceColumns'],
     };
   },
   created() {
+    window.addEventListener('handwriting-text-loaded', this.onTextLoaded);
+
+    const savedPreset = localStorage.getItem('selectedPreset');
+    if (savedPreset !== null && savedPreset !== "undefined") {
+      try {
+        const presetKey = JSON.parse(savedPreset);
+        if (typeof presetKey === 'string' && (!presetKey || this.builtinPresets[presetKey])) {
+          this.selectedPreset = presetKey;
+        } else {
+          localStorage.removeItem('selectedPreset');
+        }
+      } catch (error) {
+        console.error('解析内置预设失败:', error);
+        localStorage.removeItem('selectedPreset');
+      }
+    }
 
     // const localStorageItems = ['text', 'fontFile', 'fontSize', 'lineSpacing', 'fill', 'width', 'height', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'selectedFontFileName', 'selectedOption', 'lineSpacingSigma', 'fontSizeSigma', 'wordSpacingSigma', 'perturbXSigma', 'perturbYSigma', 'perturbThetaSigma', 'wordSpacing'];//, 'backgroundImage', 'selectedImageFileName'
 
@@ -472,20 +538,35 @@ export default {
       }
     });
 
-    if (
-      typeof this.selectedPreset !== 'string' ||
-      (this.selectedPreset && !this.builtinPresets[this.selectedPreset])
-    ) {
-      this.selectedPreset = '';
-    }
     if (typeof this.enableFullPreview !== 'boolean') {
       this.enableFullPreview = false;
     }
+
+    // 存档损坏（比如被别的版本写成了字符串）时退回默认布局，别让 NaN 进 CSS
+    const savedColumns = this.workspaceColumns;
+    const readColumn = (value) =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+    this.workspaceColumns = {
+      left: readColumn(savedColumns && savedColumns.left),
+      right: readColumn(savedColumns && savedColumns.right),
+    };
+    this.appliedColumns = { ...this.workspaceColumns };
+
+    this.$http.get('/api/version').then(response => {
+      this.appVersion = response.data?.version || '';
+    }).catch(() => {
+      // 版本号只是展示信息，取不到就不显示，不打扰用户
+      this.appVersion = '';
+    });
 
     this.$http.get('/api/fonts_info').then(response => {
       this.options = response.data.map((font, index) => {
         return { value: String(index + 1), text: font };
       });
+      const selected = this.builtinPresets[this.selectedPreset];
+      if (selected && !this.applyPresetFont(selected.fontName)) {
+        this.clearSelectedPreset();
+      }
     }).catch(error => {
       if (error.response && error.response.data) {
         this.errorMessage = error.response.data.error;
@@ -509,8 +590,20 @@ export default {
       return !!this.backgroundImage;
     },
 
+    // 拖动过的栏宽以 CSS 变量喂给 .workspace 的 grid-template-columns；
+    // 没拖动过就不写变量，由 CSS 里的默认轨道接管
+    workspaceStyle() {
+      const style = {};
+      const { left, right } = this.appliedColumns;
+      if (left) style['--col-left'] = `${left}px`;
+      if (right) style['--col-right'] = `${right}px`;
+      return style;
+    },
+
     // 按钮是否应该被禁用
     shouldDisableButtons() {
+      // 字体列表还没回来时不能点：请求里要取 options[selectedOption - 1].text
+      if (!Array.isArray(this.options) || this.options.length === 0) return true;
       return this.isGenerating || this.isInCooldownPeriod || this.queueFullCountdown > 0;
     },
 
@@ -532,6 +625,17 @@ export default {
     isDevEnv() {
       return process.env.NODE_ENV === 'development';
     },
+    // 页数提示只在生产站点显示；用 computed 避免模板里反复调用 estimatePageCount()
+    estimatedPages() {
+      if (!this.isProductionSite() || !this.text || this.text.length === 0) {
+        return 0;
+      }
+      return this.estimatePageCount();
+    },
+    presetOptionsReady() {
+      const preset = this.builtinPresets.smallUnderlined;
+      return Array.isArray(this.options) && this.options.some(option => option.text === preset.fontName);
+    },
 
     //vuex中的login_delete_message，下面使用watch监控这个值  7.13
     ...mapState(['login_delete_message']),
@@ -547,11 +651,9 @@ export default {
     errorMessage(newVal) {
       if (newVal) {
         this.$swal.fire({
-          toast: true,
-          position: 'top-end',
+          ...this.toastBase(),
           icon: 'error',
           title: newVal,
-          showConfirmButton: false,
           timer: 5000,
           timerProgressBar: true,
         });
@@ -560,11 +662,9 @@ export default {
     message(newVal) {
       if (newVal) {
         this.$swal.fire({
-          toast: true,
-          position: 'top-end',
+          ...this.toastBase(),
           icon: 'success',
           title: newVal,
-          showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
         });
@@ -573,11 +673,9 @@ export default {
     uploadMessage(newVal) {
       if (newVal) {
         this.$swal.fire({
-          toast: true,
-          position: 'top-end',
+          ...this.toastBase(),
           icon: 'info',
           title: newVal,
-          showConfirmButton: false,
           timer: false, // 上传提示保持显示
           showClass: { popup: 'swal2-show' },
           hideClass: { popup: 'swal2-hide' },
@@ -587,14 +685,7 @@ export default {
     queueFullCountdown(newVal) {
       if (newVal > 0) {
         this.$swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'warning',
-          title: `服务器繁忙，队列已满，预计 ${newVal} 秒后可重试`,
-          showConfirmButton: false,
-          timer: newVal * 1000,
-          timerProgressBar: true,
-          didOpen: (toast) => {
+          ...this.toastBase((toast) => {
             const progressBar = toast.querySelector('.swal2-timer-progress-bar');
             if (progressBar && this.queueFullTotal > 0) {
               // 更新进度条
@@ -607,7 +698,11 @@ export default {
               };
               requestAnimationFrame(updateProgress);
             }
-          },
+          }),
+          icon: 'warning',
+          title: `服务器繁忙，队列已满，预计 ${newVal} 秒后可重试`,
+          timer: newVal * 1000,
+          timerProgressBar: true,
         });
       }
     },
@@ -791,15 +886,151 @@ export default {
       },
       deep: true
     },
-    selectedPreset(newVal) {
-      localStorage.setItem('selectedPreset', JSON.stringify(newVal));
-    },
     enableFullPreview(newVal) {
       localStorage.setItem('enableFullPreview', JSON.stringify(newVal));
     },
   },
 
   methods: {
+    filenameFromResponse(response, fallbackExt) {
+      const cd = response.headers && (response.headers['content-disposition']
+        || response.headers['Content-Disposition']);
+      if (cd) {
+        const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd);
+        if (m && m[1]) {
+          try { return decodeURIComponent(m[1]); } catch (_) { return m[1]; }
+        }
+      }
+      const ts = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const stamp = `${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}-` +
+        `${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}`;
+      return `handwriting-${stamp}.${fallbackExt}`;
+    },
+    openLetterFormatter() {
+      if (!this.text || !this.text.trim()) {
+        this.$swal.fire({
+          ...this.toastBase(),
+          icon: 'info',
+          title: this.$t('message.letterTextRequired'),
+          timer: 2200,
+        });
+        return;
+      }
+      this.showLetterFormatter = true;
+    },
+    // 顶栏操作按钮排在页面顶部，toast 固定在右上角会盖住按钮、吞掉点击。
+    // 实测按钮行最右端约 1060px，加上 toast 自身 360px 宽，所以 1440px 以下改贴右下角。
+    toastPosition() {
+      return window.innerWidth <= 1440 ? 'bottom-end' : 'top-end';
+    },
+    // toast 的公共配置；didOpen 回调可选，用于叠加自定义逻辑（如队列满的进度条）
+    toastBase(didOpen) {
+      return {
+        toast: true,
+        position: this.toastPosition(),
+        showConfirmButton: false,
+        didOpen: (toast) => {
+          // 供 e2e 选择，不依赖 SweetAlert 自己的类名
+          toast.setAttribute('data-testid', 'app-toast');
+          if (didOpen) didOpen(toast);
+        },
+      };
+    },
+    applyLetterFormatting(formattedText) {
+      const textInput = this.$refs.textInputComp;
+      if (!textInput || typeof textInput.replaceText !== 'function') return;
+
+      if (this.letterFormatBackup === null) {
+        this.letterFormatBackup = this.text;
+      }
+      textInput.replaceText(formattedText);
+      this.showLetterFormatter = false;
+      this.message = this.$t('message.letterFormatApplied');
+    },
+    undoLetterFormatting() {
+      const textInput = this.$refs.textInputComp;
+      if (!textInput || typeof textInput.replaceText !== 'function' || this.letterFormatBackup === null) return;
+
+      const previousText = this.letterFormatBackup;
+      this.letterFormatBackup = null;
+      textInput.replaceText(previousText);
+    },
+    clearLetterFormatBackup() {
+      this.letterFormatBackup = null;
+    },
+    // 文本文件上传是异步的；上传途中切换布局会重建 TextInput，旧实例的 emit 会被 Vue 丢弃，
+    // 所以由 TextInput 广播事件，这里再把结果喂给当前活着的输入框（见 TextInput.uploadFile）
+    onTextLoaded(event) {
+      const loadedText = event.detail;
+      if (typeof loadedText !== 'string') return;
+      this.text = loadedText;
+      const input = this.$refs.textInputComp;
+      if (input && typeof input.replaceText === 'function' && input.text !== loadedText) {
+        input.replaceText(loadedText);
+      }
+    },
+    clearSelectedPreset() {
+      this.selectedPreset = '';
+      localStorage.removeItem('selectedPreset');
+    },
+    applyPresetFont(fontName) {
+      if (!fontName || !Array.isArray(this.options)) return false;
+
+      const match = this.options.find(option => option.text === fontName);
+      if (!match) return false;
+
+      this.selectedOption = match.value;
+      this.fontFile = null;
+      this.selectedFontFileName = '';
+      if (this.$refs.fontFileInput) {
+        this.$refs.fontFileInput.value = '';
+      }
+      localStorage.setItem('selectedOption', JSON.stringify(match.value));
+      localStorage.setItem('fontFile', JSON.stringify(null));
+      localStorage.setItem('selectedFontFileName', JSON.stringify(''));
+      return true;
+    },
+    applyPreset(event) {
+      const presetKey = event.target.value;
+      const preset = this.builtinPresets[presetKey];
+      if (!preset) {
+        this.clearSelectedPreset();
+        return;
+      }
+
+      if (this.backgroundImage && ('width' in preset.values || 'height' in preset.values)) {
+        event.target.value = this.selectedPreset;
+        this.$swal.fire({
+          icon: 'info',
+          title: this.$t('message.presetBackgroundImageActive'),
+        });
+        return;
+      }
+
+      if (!this.applyPresetFont(preset.fontName)) {
+        event.target.value = this.selectedPreset;
+        this.$swal.fire({
+          icon: 'error',
+          title: this.$t('message.presetUnavailable'),
+        });
+        return;
+      }
+
+      Object.entries(preset.values).forEach(([key, value]) => {
+        this[key] = value;
+        localStorage.setItem(key, JSON.stringify(value));
+      });
+      this.selectedPreset = presetKey;
+      localStorage.setItem('selectedPreset', JSON.stringify(this.selectedPreset));
+
+      this.$swal.fire({
+        icon: 'success',
+        title: this.$t('message.presetApplied'),
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    },
     prevPage() {
       if (this.currentPreviewIndex > 0) {
         this.currentPreviewIndex--;
@@ -818,50 +1049,155 @@ export default {
     },
     toggleSidebar() {
       this.showSidebar = !this.showSidebar;
+      this.$nextTick(this.clampWorkspaceColumns);
     },
     triggerTextUpload() {
-      const tx = this.$refs.textInputComp;
-      if (tx && typeof tx.triggerTextFileInput === 'function') {
-        tx.triggerTextFileInput();
-      }
-    },
-    openLetterFormatter() {
-      if (!this.text || !this.text.trim()) {
-        this.$swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'info',
-          title: this.$t('message.letterTextRequired'),
-          showConfirmButton: false,
-          timer: 2200,
-        });
-        return;
-      }
-      this.showLetterFormatter = true;
-    },
-    applyLetterFormatting(formattedText) {
-      const tx = this.$refs.textInputComp;
-      if (!tx || typeof tx.replaceText !== 'function') return;
-
-      this.letterFormatBackup = this.text;
-      tx.replaceText(formattedText);
-      this.showLetterFormatter = false;
-      this.message = this.$t('message.letterFormatApplied');
-    },
-    undoLetterFormatting() {
-      const tx = this.$refs.textInputComp;
-      if (!tx || typeof tx.replaceText !== 'function' || this.letterFormatBackup === null) return;
-
-      const previousText = this.letterFormatBackup;
-      this.letterFormatBackup = null;
-      tx.replaceText(previousText);
-    },
-    clearLetterFormatBackup() {
-      this.letterFormatBackup = null;
+      this.$refs.textInputComp?.triggerTextFileInput();
     },
     handleTextFileUploaded(name) {
       this.uploadedFileName = name;
       this.letterFormatBackup = null;
+    },
+    // ===== 三栏宽度调整 =====
+    // 量一次工作区与左右两栏的当前尺寸。拖动开始时左右两栏会被钉成此刻的像素宽度，
+    // 之后只有中栏伸缩，所以 clamp 只要守住「两栏 + 两条间隔 + 中栏最小宽度 ≤ 可用宽度」
+    measureWorkspaceMetrics() {
+      const workspace = this.$refs.workspace;
+      if (!workspace || !this.$refs.panelSettings || !this.$refs.panelPreview) return null;
+      const style = getComputedStyle(workspace);
+      const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+      return {
+        available: workspace.getBoundingClientRect().width - padding,
+        left: this.$refs.panelSettings.getBoundingClientRect().width,
+        right: this.$refs.panelPreview.getBoundingClientRect().width,
+      };
+    },
+    // 左右两栏一起钉成固定像素宽度；中栏拿走剩下的空间。拖出来的值同时是"用户要的宽度"和"当前渲染宽度"
+    applyColumnWidths(left, right) {
+      const columns = { left: Math.round(left), right: Math.round(right) };
+      this.workspaceColumns = columns;
+      this.appliedColumns = { ...columns };
+    },
+    // 存储不可用（隐私模式 / 配额满）时 setItem 会抛异常。这里吞掉它，
+    // 否则 resetColumnWidth 里紧跟着的那次 clamp 会被跳过，布局可能停在放不下的状态
+    persistWorkspaceColumns() {
+      try {
+        localStorage.setItem('workspaceColumns', JSON.stringify(this.workspaceColumns));
+      } catch (error) {
+        console.warn('保存栏宽失败:', error);
+      }
+    },
+    startResize(side, event) {
+      const metrics = this.measureWorkspaceMetrics();
+      if (!metrics) return;
+      // 先把两栏都钉成当前像素宽度：中栏剩下的宽度不变（画面不跳），
+      // 且拖动期间只有中栏在伸缩，上面那条 clamp 算术才成立
+      this.applyColumnWidths(metrics.left, metrics.right);
+      this.resizeState = {
+        side,
+        startX: event.clientX,
+        startLeft: Math.round(metrics.left),
+        startRight: Math.round(metrics.right),
+        available: metrics.available,
+      };
+      // 指针会移出分隔条，把事件捕获到它自己身上；同时屏蔽整页的选中与光标抖动
+      if (event.currentTarget.setPointerCapture) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    },
+    onResizeMove(event) {
+      const state = this.resizeState;
+      if (!state) return;
+      const delta = event.clientX - state.startX;
+      // 另一栏此刻是钉死的，中栏最小宽度要从可用宽度里扣掉它
+      const otherWidth = state.side === 'left' ? state.startRight : state.startLeft;
+      const maxSide = state.available - GUTTER_WIDTH * 2 - MIN_MIDDLE_WIDTH - otherWidth;
+      if (state.side === 'left') {
+        const left = clamp(state.startLeft + delta, MIN_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, maxSide));
+        this.applyColumnWidths(left, state.startRight);
+      } else {
+        const right = clamp(state.startRight - delta, MIN_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, maxSide));
+        this.applyColumnWidths(state.startLeft, right);
+      }
+    },
+    endResize(event) {
+      if (!this.resizeState) return;
+      if (event.currentTarget.releasePointerCapture && event.currentTarget.hasPointerCapture
+        && event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      this.resizeState = null;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      this.persistWorkspaceColumns();
+    },
+    // 双击分隔条：这一栏退回 CSS 的弹性默认宽度（左 300px / 右 1fr）
+    resetColumnWidth(side) {
+      const columns = { ...this.workspaceColumns, [side]: null };
+      this.workspaceColumns = columns;
+      this.appliedColumns = { ...columns };
+      this.persistWorkspaceColumns();
+      // 另一栏还钉着的话，退回弹性列后可能放不下，按当前窗口再收一次
+      this.clampWorkspaceColumns();
+    },
+    onResizerKeydown(side, event) {
+      // 方向键朝着分隔条该走的方向推：左分隔条按 → 加宽左栏，右分隔条按 ← 加宽右栏
+      const growKey = side === 'left' ? 'ArrowRight' : 'ArrowLeft';
+      const shrinkKey = side === 'left' ? 'ArrowLeft' : 'ArrowRight';
+      if (event.key !== growKey && event.key !== shrinkKey) return;
+      event.preventDefault();
+
+      const metrics = this.measureWorkspaceMetrics();
+      if (!metrics) return;
+      const other = side === 'left' ? metrics.right : metrics.left;
+      const current = side === 'left' ? metrics.left : metrics.right;
+      const maxSide = metrics.available - GUTTER_WIDTH * 2 - MIN_MIDDLE_WIDTH - other;
+      const step = event.key === growKey ? KEYBOARD_RESIZE_STEP : -KEYBOARD_RESIZE_STEP;
+      const next = clamp(current + step, MIN_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, maxSide));
+
+      // 键盘调整也把两栏一起钉住，否则中栏的伸缩比例会和拖动时对不上
+      this.applyColumnWidths(side === 'left' ? next : metrics.left, side === 'right' ? next : metrics.right);
+      this.persistWorkspaceColumns();
+    },
+    // 窗口变窄时把渲染宽度按比例收回来，否则左右两栏会把中栏挤到最小宽度以下、整页横向溢出。
+    // 只改 appliedColumns，用户拖出来的值留在 workspaceColumns 里，窗口重新变宽时能还回去
+    clampWorkspaceColumns() {
+      const { left, right } = this.workspaceColumns;
+      if (!left && !right) return;
+      const workspace = this.$refs.workspace;
+      if (!workspace) return;
+      // 窄屏是单栏堆叠，栏宽存的是宽屏时的值，这时候不能拿当前宽度去压它
+      if (!this.$refs.panelSettings || !this.$refs.panelPreview) return;
+      const settings = this.$refs.panelSettings.getBoundingClientRect();
+      const preview = this.$refs.panelPreview.getBoundingClientRect();
+      if (preview.left < settings.right) return;
+
+      const metrics = this.measureWorkspaceMetrics();
+      if (!metrics) return;
+      // 没钉住的那一栏按 CSS 默认轨道渲染，但占的宽度也要算进来
+      const currentLeft = left || metrics.left;
+      const currentRight = right || metrics.right;
+      const maxTotal = metrics.available - GUTTER_WIDTH * 2 - MIN_MIDDLE_WIDTH;
+      if (currentLeft + currentRight <= maxTotal) {
+        this.appliedColumns = { left, right };
+        return;
+      }
+
+      const scale = maxTotal / (currentLeft + currentRight);
+      let nextLeft = Math.max(MIN_COLUMN_WIDTH, Math.round(currentLeft * scale));
+      let nextRight = Math.max(MIN_COLUMN_WIDTH, Math.round(currentRight * scale));
+      // 两侧各自有 200px 下限，按比例缩完再抬到下限后可能仍超预算，多出来的从较宽的一侧扣掉
+      const excess = nextLeft + nextRight - maxTotal;
+      if (excess > 0) {
+        if (nextLeft > nextRight) {
+          nextLeft -= excess;
+        } else {
+          nextRight -= excess;
+        }
+      }
+      this.appliedColumns = { left: nextLeft, right: nextRight };
     },
     startQueueFullCountdown(seconds) {
       // 清掉旧计时器
@@ -979,20 +1315,15 @@ export default {
       }
       throw new Error('任务处理超时，请重试');
     },
-    filenameFromResponse(response, fallbackExt) {
-      const cd = response.headers && (response.headers['content-disposition']
-        || response.headers['Content-Disposition']);
-      if (cd) {
-        const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd);
-        if (m && m[1]) {
-          try { return decodeURIComponent(m[1]); } catch (_) { return m[1]; }
-        }
-      }
-      const ts = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const stamp = `${ts.getFullYear()}${pad(ts.getMonth() + 1)}${pad(ts.getDate())}-` +
-        `${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}`;
-      return `handwriting-${stamp}.${fallbackExt}`;
+    // 桌面版的文件由 Electron 自己落盘，路径随后由主进程回传；网页版我们拿不到路径，
+    // 只能让用户去浏览器自己的下载目录找。
+    downloadedMessage() {
+      return hasDesktopBridge()
+        ? this.$t('message.fileDownloaded')
+        : this.$t('message.fileDownloadedBrowserHint');
+    },
+    openDownloadFolder() {
+      window.handwritingDesktop?.revealLastDownload();
     },
     handleGenerationResultResponse(response) {
       const contentType = response.headers['content-type'] || '';
@@ -1024,28 +1355,33 @@ export default {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', this.filenameFromResponse(response, 'zip'));
+        link.setAttribute('download', hasDesktopBridge() ? 'images.zip' : this.filenameFromResponse(response, 'zip')); // 或任何其他文件名
         document.body.appendChild(link);
         link.click();
         // 下载完成后，将链接删除，7.5
         document.body.removeChild(link);
         // 设置提示信息
-        this.message = '文件已下载。';
+        this.downloadSavedPath = '';  // 新的下载开始，先撤掉上次的路径
+        this.message = this.downloadedMessage();
         this.uploadMessage = '';
         this.errorMessage = '';
 
       } else if (contentType.includes('application/pdf')) {
         // 处理.pdf文件
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const pdfBlob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', this.filenameFromResponse(response, 'pdf'));
+        link.setAttribute('download', hasDesktopBridge() ? 'images.pdf' : this.filenameFromResponse(response, 'pdf')); // 或任何其他文件名
         document.body.appendChild(link);
         link.click();
         // 下载完成后，将链接删除
         document.body.removeChild(link);
+        // e2e 靠这个数字核对实际交付的 PDF 体积（见 e2e/tests/home-generate.spec.js）
+        this.lastPdfDownloadBytes = pdfBlob.size;
         // 设置提示信息
-        this.message = '文件已下载。';
+        this.downloadSavedPath = '';  // 新的下载开始，先撤掉上次的路径
+        this.message = this.downloadedMessage();
         this.uploadMessage = '';
         this.errorMessage = '';
       } else {
@@ -1092,13 +1428,13 @@ export default {
         // 检查是否为生产环境并进行页数限制
         if (!preview && this.isProductionSite()) {
           const estimatedPages = this.estimatePageCount();
-          if (estimatedPages > 15) {
+          if (exceedsPageLimit(estimatedPages)) {
             const confirmed = await this.showPageLimitDialog(estimatedPages);
             if (!confirmed) {
               return; // 用户取消生成
             }
-            // 用户确认继续，在前端截断文本到前15页
-            this.truncateTextToPages(15);
+            // 用户确认继续，在前端截断文本到上限页数
+            this.truncateTextToPages(MAX_PAGES);
           }
         }
 
@@ -1310,34 +1646,6 @@ export default {
         // 冷却定时器会自动处理冷却状态的重置
       }
     },
-    applyPreset() {
-      const key = this.selectedPreset;
-      if (!key) return;
-      const preset = this.builtinPresets[key];
-      if (!preset) return;
-
-      Object.keys(preset.values).forEach(k => {
-        this[k] = preset.values[k];
-      });
-
-      // Match preset font against /api/fonts_info dropdown; clear any
-      // uploaded font so the backend uses the built-in via font_option.
-      if (preset.fontName && Array.isArray(this.options)) {
-        const match = this.options.find(o => o.text === preset.fontName);
-        if (match) {
-          this.selectedOption = match.value;
-          this.fontFile = null;
-          this.selectedFontFileName = '';
-        }
-      }
-
-      this.$swal.fire({
-        icon: 'success',
-        title: this.$t('message.presetApplied'),
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    },
     savePreset() {
       try {
         let data = {};
@@ -1398,7 +1706,7 @@ export default {
       this.selectedFontFileName = '';
       this.selectedImageFileName = '';
       this.selectedOption = '1';
-      this.selectedPreset = '';
+      this.clearSelectedPreset();
       this.previewImage = "/default1.webp";
     },
     loadPreset() {
@@ -1419,7 +1727,7 @@ export default {
         Object.keys(data).forEach(item => {
           this[item] = data[item];
         });
-        this.selectedPreset = '';
+        this.clearSelectedPreset();
 
         this.$swal.fire({
           icon: 'success',
@@ -1436,6 +1744,7 @@ export default {
       }
     },
     onBackgroundImageChange(event) {
+      this.clearSelectedPreset();
       // 当用户选择了一个新的背景图片文件时，更新 selectedImageFileName，由于这边直接触发函数了，所以localstorage可以在这里修改，
       //之前因为文字不能触发函数，所以要放在watch里面
       this.selectedImageFileName = event.target.files[0].name;
@@ -1489,6 +1798,7 @@ export default {
       })
     },
     onFontChange(event) {
+      this.clearSelectedPreset();
       // 当用户选择了一个新的字体文件时，更新 selectedFontFileName
       this.selectedFontFileName = event.target.files[0].name;
       this.fontFile = event.target.files[0];
@@ -1594,30 +1904,14 @@ export default {
 
     // 显示页数限制对话框
     async showPageLimitDialog(estimatedPages) {
+      const dialog = buildPageLimitDialog(estimatedPages);
       try {
         const result = await this.$swal.fire({
-          title: '页数限制提醒',
-          html: `
-            <div style="text-align: left; line-height: 1.6;">
-              <p><strong>检测到您的文本预计会生成 ${estimatedPages} 页</strong></p>
-              <p>由于服务器资源限制，在 <strong>handwrite.14790897.xyz</strong> 网站上单次最多只能生成 <strong>10页</strong>。</p>
-              <p>如果您选择继续：</p>
-              <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>系统将只生成前 10 页内容</li>
-                <li>超出部分将被自动截断</li>
-                <li>建议您分批处理长文本</li>
-              </ul>
-              <p style="color: #666; font-size: 14px;">
-                💡 提示：您可以将长文本分成多个部分，分别生成，或者自行搭建本项目来处理更长的文本
-              </p>
-              <p style="color: #888; font-size: 12px; margin-top: 10px;">
-                注：此限制仅适用于 handwrite.14790897.xyz 网站
-              </p>
-            </div>
-          `,
+          title: dialog.title,
+          html: dialog.html,
           icon: 'warning',
           showCancelButton: true,
-          confirmButtonText: '继续生成（前10页）',
+          confirmButtonText: dialog.confirmText,
           cancelButtonText: '取消',
           confirmButtonColor: '#f39c12',
           cancelButtonColor: '#d33',
@@ -1628,7 +1922,7 @@ export default {
       } catch (error) {
         console.error('SweetAlert2 error:', error);
         // 降级到原生 confirm
-        return confirm(`检测到您的文本预计会生成 ${estimatedPages} 页。\n\n由于服务器资源限制，在 handwrite.14790897.xyz 网站上单次最多只能生成 10页。\n\n是否继续生成前10页？`);
+        return confirm(dialog.fallbackConfirmText);
       }
     },
 
@@ -1713,8 +2007,28 @@ export default {
 
   },
 
+  mounted() {
+    // 还原出来的栏宽是按当初那个窗口算的，进页面时先按当前窗口收一次
+    this.clampWorkspaceColumns();
+    window.addEventListener('resize', this.clampWorkspaceColumns);
+
+    // 桌面版：下载完成后主进程回传文件落在哪（见 desktop/main.js 的 setupDownloads）。
+    // 网页版没有这座桥，走 downloadedMessage() 里那句「去浏览器下载目录找」。
+    if (hasDesktopBridge()) {
+      window.handwritingDesktop.onDownloadFinished(({ file, state }) => {
+        this.downloadSavedPath = state === 'completed' ? file : '';
+        this.message = state === 'completed'
+          ? this.$t('message.fileDownloaded')
+          : this.$t('message.downloadFailed');
+      });
+    }
+  },
+
   // 组件销毁时清理定时器
   beforeUnmount() {
+    window.removeEventListener('handwriting-text-loaded', this.onTextLoaded);
+    window.removeEventListener('resize', this.clampWorkspaceColumns);
+
     if (this.cooldownTimer) {
       clearInterval(this.cooldownTimer);
       this.cooldownTimer = null;
@@ -1723,7 +2037,6 @@ export default {
 
 };
 </script>
-
 
 <style scoped>
 .container {
@@ -2756,4 +3069,60 @@ input[type="file"]:hover {
   .hw-toolbar-section { flex-wrap: wrap; }
 }
 
+.resizer {
+  position: relative;
+  cursor: col-resize;
+  /* 触控设备上把手势交给 pointer 事件，别让它变成滚动 */
+  touch-action: none;
+}
+
+.resizer:focus {
+  outline: none;
+}
+
+.resizer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resizer:hover::before {
+  background: #9db3cf;
+}
+
+.resizer:focus-visible::before,
+.resizer.active::before {
+  background: #007BFF;
+}
+
+/* 保留编辑器三栏与连续预览，接入上游的栏宽调整。 */
+@media (min-width: 1001px) {
+  .hw-split {
+    display: grid;
+    grid-template-columns: var(--col-left, 300px) 16px minmax(0, 1fr) 16px var(--col-right, minmax(0, 1fr));
+  }
+  .hw-split.sidebar-hidden {
+    grid-template-columns: minmax(0, 1fr) 16px var(--col-right, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1000px) {
+  .resizer { display: none; }
+}
+
+.hw-header { flex: 0 0 auto; }
+@media (max-width: 1000px) {
+  .hw-app { height: auto; min-height: 100dvh; overflow: visible; }
+  .hw-split { flex: none; flex-direction: column; overflow: visible; }
+  .hw-pane { height: auto; overflow: visible; }
+  .hw-sidebar { flex: none; width: 100%; }
+  .hw-editor { flex: none; min-height: 400px; }
+  .hw-pane-preview { flex: none; min-height: 400px; }
+}
 </style>
